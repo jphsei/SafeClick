@@ -463,11 +463,11 @@ BEGIN
         NEW.id,
         COALESCE(NEW.raw_user_meta_data->>'nome_completo', split_part(NEW.email, '@', 1)),
         NEW.email,
-        COALESCE((NEW.raw_user_meta_data->>'papel')::papel_utilizador, 'aluno')
+        COALESCE((NEW.raw_user_meta_data->>'papel')::public.papel_utilizador, 'aluno'::public.papel_utilizador)
     );
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE TRIGGER trg_auth_novo_utilizador
     AFTER INSERT ON auth.users

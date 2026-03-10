@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(supabase db:*)"
+      "Bash(supabase db:*)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)"
     ]
   }
 }
