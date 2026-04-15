@@ -4,6 +4,13 @@ import { BookOpen, Award, Star, ArrowRight, TrendingUp } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { type NivelDificuldade } from '@/lib/types/database.types'
+
+const nivelLabel: Record<NivelDificuldade, string> = {
+  basico: 'Básico',
+  intermedio: 'Intermédio',
+  avancado: 'Avançado',
+}
 
 export default async function AlunoDashboardPage() {
   const supabase = await createClient()
@@ -14,7 +21,6 @@ export default async function AlunoDashboardPage() {
 
   if (!user) redirect('/login')
 
-  // Fetch user profile
   const { data: perfilRaw } = await supabase
     .from('perfis')
     .select('nome_completo, pontos_total, papel')
@@ -32,7 +38,6 @@ export default async function AlunoDashboardPage() {
   const primeiroNome = nomeCompleto.split(' ')[0]
   const pontosTotal = perfil?.pontos_total ?? 0
 
-  // Fetch modules progress
   const { data: progressoDataRaw } = await supabase
     .from('progresso_modulo')
     .select('concluido')
@@ -41,7 +46,6 @@ export default async function AlunoDashboardPage() {
   const progressoData = progressoDataRaw as { concluido: boolean }[] | null
   const modulosConcluidos = progressoData?.filter((p) => p.concluido).length ?? 0
 
-  // Fetch badges earned
   const { data: badgesDataRaw } = await supabase
     .from('utilizador_badges')
     .select('badge_id')
@@ -49,35 +53,35 @@ export default async function AlunoDashboardPage() {
 
   const badgesGanhos = badgesDataRaw?.length ?? 0
 
-  // Fetch available modules (published)
   const { data: modulosRaw } = await supabase
     .from('modulos')
-    .select('id, titulo, descricao, nivel_dificuldade')
+    .select('id, titulo, descricao, dificuldade')
     .eq('estado', 'publicado')
     .order('ordem')
     .limit(4)
 
-  const modulos = modulosRaw as { id: string; titulo: string; descricao: string | null; nivel_dificuldade: string }[] | null
+  const modulos = modulosRaw as {
+    id: string
+    titulo: string
+    descricao: string | null
+    dificuldade: NivelDificuldade
+  }[] | null
 
-  // Fetch earned badges with names
   const { data: badgesRaw } = await supabase
     .from('utilizador_badges')
-    .select('badge_id, ganho_em')
+    .select('badge_id, ganho_em, badges(nome, icone_url)')
     .eq('utilizador_id', user.id)
     .order('ganho_em', { ascending: false })
     .limit(3)
 
-  const badges = badgesRaw as { badge_id: string; ganho_em: string }[] | null
-
-  const nivelLabel: Record<string, string> = {
-    basico: 'Básico',
-    intermedio: 'Intermédio',
-    avancado: 'Avançado',
-  }
+  const badges = badgesRaw as {
+    badge_id: string
+    ganho_em: string
+    badges: { nome: string; icone_url: string | null } | null
+  }[] | null
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      {/* Welcome */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900">
           Olá, {primeiroNome}! 👋
@@ -145,8 +149,9 @@ export default async function AlunoDashboardPage() {
           <CardContent className="space-y-3">
             {modulos && modulos.length > 0 ? (
               modulos.map((modulo) => (
-                <div
+                <Link
                   key={modulo.id}
+                  href={`/aluno/modulos/${modulo.id}`}
                   className="flex items-center gap-3 rounded-lg border border-slate-100 p-3 hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
@@ -158,17 +163,10 @@ export default async function AlunoDashboardPage() {
                     </p>
                     <p className="text-xs text-slate-500 truncate">{modulo.descricao}</p>
                   </div>
-                  <Badge
-                    variant={
-                      modulo.nivel_dificuldade as
-                        | 'basico'
-                        | 'intermedio'
-                        | 'avancado'
-                    }
-                  >
-                    {nivelLabel[modulo.nivel_dificuldade] ?? modulo.nivel_dificuldade}
+                  <Badge variant={modulo.dificuldade}>
+                    {nivelLabel[modulo.dificuldade]}
                   </Badge>
-                </div>
+                </Link>
               ))
             ) : (
               <div className="text-center py-6">
@@ -203,11 +201,11 @@ export default async function AlunoDashboardPage() {
                     className="flex items-center gap-3 rounded-lg border border-slate-100 p-3"
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-yellow-50 text-lg">
-                      🏅
+                      {ub.badges?.icone_url ?? '🏅'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-900">
-                        Badge desbloqueado
+                      <p className="text-sm font-medium text-slate-900 truncate">
+                        {ub.badges?.nome ?? 'Badge desbloqueado'}
                       </p>
                       <p className="text-xs text-slate-500 truncate">
                         Ganho em {new Date(ub.ganho_em).toLocaleDateString('pt-PT')}

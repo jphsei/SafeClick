@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Users, BookOpen, TrendingUp, ArrowRight, GraduationCap } from 'lucide-react'
@@ -41,8 +43,27 @@ export default async function ProfessorDashboardPage() {
 
   const totalTurmas = turmas?.length ?? 0
 
-  // TODO: Fetch real student count per turma (requires turma_alunos join)
-  // TODO: Fetch real completion rate (requires progresso_modulo aggregation)
+  // Fetch real stats from view
+  const turmaIds = turmas?.map((t) => t.id) ?? []
+  let totalAlunos = 0
+  let taxaConclusaoMedia = 0
+  const statsMap = new Map<string, { total_alunos: number; media_progresso: number }>()
+
+  if (turmaIds.length > 0) {
+    const { data: statsRaw } = await supabase
+      .from('v_stats_turma')
+      .select('turma_id, total_alunos, media_progresso')
+      .in('turma_id', turmaIds)
+
+    const stats = statsRaw as { turma_id: string; total_alunos: number; media_progresso: number }[] | null
+    if (stats && stats.length > 0) {
+      totalAlunos = stats.reduce((sum, s) => sum + s.total_alunos, 0)
+      taxaConclusaoMedia = Math.round(
+        stats.reduce((sum, s) => sum + (s.media_progresso ?? 0), 0) / stats.length
+      )
+      stats.forEach((s) => statsMap.set(s.turma_id, s))
+    }
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -70,30 +91,28 @@ export default async function ProfessorDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* TODO: Replace with real data */}
         <Card>
           <CardContent className="flex items-center gap-4 pt-6">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
               <Users className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">—</p>
+              <p className="text-2xl font-bold text-slate-900">{totalAlunos}</p>
               <p className="text-sm text-slate-500">Total de alunos</p>
-              {/* TODO: Sum of alunos across all turmas */}
             </div>
           </CardContent>
         </Card>
 
-        {/* TODO: Replace with real completion rate */}
         <Card>
           <CardContent className="flex items-center gap-4 pt-6">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100">
               <TrendingUp className="h-6 w-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">—</p>
+              <p className="text-2xl font-bold text-slate-900">
+                {totalTurmas > 0 ? `${taxaConclusaoMedia}%` : '—'}
+              </p>
               <p className="text-sm text-slate-500">Taxa de conclusão média</p>
-              {/* TODO: Calculate from progresso_modulo */}
             </div>
           </CardContent>
         </Card>
@@ -132,10 +151,11 @@ export default async function ProfessorDashboardPage() {
                       {turma.descricao && ` · ${turma.descricao}`}
                     </p>
                   </div>
-                  {/* TODO: Show real student count */}
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm text-slate-400">— alunos</p>
-                    {/* TODO: fetch turma_alunos count */}
+                    <p className="text-sm font-bold text-slate-900">
+                      {statsMap.get(turma.id)?.total_alunos ?? 0}
+                    </p>
+                    <p className="text-xs text-slate-400">alunos</p>
                   </div>
                 </div>
               ))}
@@ -174,13 +194,19 @@ export default async function ProfessorDashboardPage() {
           </Link>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center">
-            <BookOpen className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm text-slate-500">
-              {/* TODO: Implement module assignment to turmas */}
-              Funcionalidade de atribuição de módulos a turmas em desenvolvimento.
-            </p>
-          </div>
+          <Link
+            href="/professor/modulos"
+            className="flex items-center gap-4 rounded-lg border border-slate-100 p-4 hover:bg-slate-50 transition-colors group"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+              <BookOpen className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-slate-900">Gerir e atribuir módulos</p>
+              <p className="text-sm text-slate-500">Atribui módulos às tuas turmas e acompanha o progresso</p>
+            </div>
+            <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
+          </Link>
         </CardContent>
       </Card>
     </div>

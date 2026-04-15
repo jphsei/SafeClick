@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
-import { School, Users, BookOpen, Shield, TrendingUp, Activity } from 'lucide-react'
+import Link from 'next/link'
+import { School, Users, BookOpen, Shield, TrendingUp, Activity, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
@@ -25,101 +26,63 @@ export default async function AdminDashboardPage() {
     if (perfil?.papel === 'professor') redirect('/professor')
   }
 
-  // Fetch aggregate stats
-  // TODO: These counts will grow as more data is added
-
-  const { count: totalEscolas } = await supabase
-    .from('escolas')
-    .select('*', { count: 'exact', head: true })
-    .eq('ativo', true)
-
-  const { count: totalUtilizadores } = await supabase
-    .from('perfis')
-    .select('*', { count: 'exact', head: true })
-    .eq('ativo', true)
-
-  const { count: totalModulos } = await supabase
-    .from('modulos')
-    .select('*', { count: 'exact', head: true })
-    .eq('estado', 'publicado')
-
-  // TODO: Fetch real simulation and badge stats
-  // TODO: Implement real-time activity feed
-  // TODO: Add school management CRUD
-  // TODO: Add user management with role assignment
-  // TODO: Add module management (create/edit/publish/archive)
+  const [
+    { count: totalEscolas },
+    { count: totalUtilizadores },
+    { count: totalModulos },
+    { count: totalSimulacoes },
+  ] = await Promise.all([
+    supabase.from('escolas').select('*', { count: 'exact', head: true }).eq('ativo', true),
+    supabase.from('perfis').select('*', { count: 'exact', head: true }).eq('ativo', true),
+    supabase.from('modulos').select('*', { count: 'exact', head: true }).eq('estado', 'publicado'),
+    supabase.from('simulacoes_phishing').select('*', { count: 'exact', head: true }).eq('ativo', true),
+  ])
 
   const stats = [
-    {
-      label: 'Escolas registadas',
-      value: totalEscolas ?? 0,
-      icon: School,
-      color: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      // TODO: Link to /admin/escolas when page is built
-    },
-    {
-      label: 'Utilizadores ativos',
-      value: totalUtilizadores ?? 0,
-      icon: Users,
-      color: 'bg-green-100',
-      iconColor: 'text-green-600',
-      // TODO: Link to /admin/utilizadores when page is built
-    },
-    {
-      label: 'Módulos publicados',
-      value: totalModulos ?? 0,
-      icon: BookOpen,
-      color: 'bg-purple-100',
-      iconColor: 'text-purple-600',
-      // TODO: Link to /admin/modulos when page is built
-    },
-    {
-      label: 'Simulações ativas',
-      value: '—', // TODO: Fetch from simulacoes_phishing where estado = 'ativa'
-      icon: Shield,
-      color: 'bg-cyan-100',
-      iconColor: 'text-cyan-600',
-    },
+    { label: 'Escolas registadas', value: totalEscolas ?? 0, icon: School, color: 'bg-blue-100', iconColor: 'text-blue-600', href: '/admin/escolas' },
+    { label: 'Utilizadores ativos', value: totalUtilizadores ?? 0, icon: Users, color: 'bg-green-100', iconColor: 'text-green-600', href: '/admin/utilizadores' },
+    { label: 'Módulos publicados', value: totalModulos ?? 0, icon: BookOpen, color: 'bg-purple-100', iconColor: 'text-purple-600', href: '/admin/modulos' },
+    { label: 'Simulações ativas', value: totalSimulacoes ?? 0, icon: Shield, color: 'bg-cyan-100', iconColor: 'text-cyan-600', href: null },
+  ]
+
+  const quickActions = [
+    { label: 'Gerir escolas', description: 'Adicionar e editar escolas', href: '/admin/escolas', icon: School },
+    { label: 'Gerir utilizadores', description: 'Utilizadores e permissões', href: '/admin/utilizadores', icon: Users },
+    { label: 'Gerir módulos', description: 'Ver e gerir módulos publicados', href: '/admin/modulos', icon: BookOpen },
   ]
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Painel de Administração
-        </h1>
-        <p className="text-slate-500 mt-1">
-          Visão geral da plataforma SafeClick.
-        </p>
+        <h1 className="text-2xl font-bold text-slate-900">Painel de Administração</h1>
+        <p className="text-slate-500 mt-1">Visão geral da plataforma SafeClick.</p>
       </div>
 
       {/* Stats grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon
-          return (
-            <Card key={stat.label}>
+          const card = (
+            <Card className={stat.href ? 'hover:shadow-sm transition-shadow cursor-pointer' : ''}>
               <CardContent className="flex items-center gap-4 pt-6">
-                <div
-                  className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.color}`}
-                >
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.color}`}>
                   <Icon className={`h-6 w-6 ${stat.iconColor}`} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-slate-900">
-                    {stat.value}
-                  </p>
+                  <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
                   <p className="text-xs text-slate-500">{stat.label}</p>
                 </div>
               </CardContent>
             </Card>
           )
+          return stat.href ? (
+            <Link key={stat.label} href={stat.href}>{card}</Link>
+          ) : (
+            <div key={stat.label}>{card}</div>
+          )
         })}
       </div>
 
-      {/* Overview sections */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Platform health */}
         <Card>
@@ -135,25 +98,14 @@ export default async function AdminDashboardPage() {
               { label: 'Base de dados', status: 'Operacional', ok: true },
               { label: 'Autenticação', status: 'Operacional', ok: true },
               { label: 'Armazenamento', status: 'Operacional', ok: true },
-              // TODO: Implement real health checks
             ].map((item) => (
               <div
                 key={item.label}
                 className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-2.5"
               >
                 <span className="text-sm text-slate-700">{item.label}</span>
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    item.ok
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}
-                >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${
-                      item.ok ? 'bg-green-500' : 'bg-red-500'
-                    }`}
-                  />
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${item.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${item.ok ? 'bg-green-500' : 'bg-red-500'}`} />
                   {item.status}
                 </span>
               </div>
@@ -171,48 +123,23 @@ export default async function AdminDashboardPage() {
             <CardDescription>Gerir recursos da plataforma</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            {[
-              {
-                label: 'Gerir escolas',
-                description: 'Adicionar e editar escolas',
-                href: '/admin/escolas',
-                icon: School,
-                // TODO: Implement /admin/escolas page
-              },
-              {
-                label: 'Gerir utilizadores',
-                description: 'Utilizadores e permissões',
-                href: '/admin/utilizadores',
-                icon: Users,
-                // TODO: Implement /admin/utilizadores page
-              },
-              {
-                label: 'Gerir módulos',
-                description: 'Criar e publicar módulos',
-                href: '/admin/modulos',
-                icon: BookOpen,
-                // TODO: Implement /admin/modulos page
-              },
-            ].map((action) => {
+            {quickActions.map((action) => {
               const Icon = action.icon
               return (
-                <div
+                <Link
                   key={action.label}
-                  className="flex items-center gap-3 rounded-lg border border-slate-100 p-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  href={action.href}
+                  className="flex items-center gap-3 rounded-lg border border-slate-100 p-3 hover:bg-slate-50 transition-colors group"
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
                     <Icon className="h-4 w-4 text-blue-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900">
-                      {action.label}
-                    </p>
+                    <p className="text-sm font-medium text-slate-900">{action.label}</p>
                     <p className="text-xs text-slate-500">{action.description}</p>
                   </div>
-                  <span className="text-xs text-slate-400 bg-slate-100 rounded px-2 py-0.5">
-                    Em breve
-                  </span>
-                </div>
+                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                </Link>
               )
             })}
           </CardContent>

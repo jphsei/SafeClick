@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BookOpen, Filter, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { BookOpen, Filter, Loader2, Clock, CheckCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -14,48 +15,64 @@ const nivelLabels: Record<NivelDificuldade, string> = {
   avancado: 'Avançado',
 }
 
-const nivelColors: Record<NivelDificuldade, string> = {
-  basico: 'bg-green-50 text-green-700',
-  intermedio: 'bg-yellow-50 text-yellow-700',
-  avancado: 'bg-red-50 text-red-700',
-}
-
 type FilterType = 'todos' | NivelDificuldade
+
+type ProgressoMap = Record<string, { percentagem: number; concluido: boolean }>
 
 export default function ModulosPage() {
   const [modulos, setModulos] = useState<Modulo[]>([])
+  const [progresso, setProgresso] = useState<ProgressoMap>({})
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState<FilterType>('todos')
   const supabase = createClient()
 
   useEffect(() => {
-    async function fetchModulos() {
+    async function fetchData() {
       setLoading(true)
-      const query = supabase
-        .from('modulos')
-        .select('*')
-        .eq('estado', 'publicado')
-        .order('ordem')
 
-      const { data, error } = await query
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
-      if (!error && data) {
-        setModulos(data as Modulo[])
+      const [modulosRes, progressoRes] = await Promise.all([
+        supabase
+          .from('modulos')
+          .select('*')
+          .eq('estado', 'publicado')
+          .order('ordem'),
+        user
+          ? supabase
+              .from('progresso_modulo')
+              .select('modulo_id, percentagem, concluido')
+              .eq('aluno_id', user.id)
+          : Promise.resolve({ data: [] }),
+      ])
+
+      if (!modulosRes.error && modulosRes.data) {
+        setModulos(modulosRes.data as Modulo[])
       }
+
+      if (progressoRes.data) {
+        const map: ProgressoMap = {}
+        ;(progressoRes.data as { modulo_id: string; percentagem: number; concluido: boolean }[]).forEach(
+          (p) => { map[p.modulo_id] = { percentagem: p.percentagem, concluido: p.concluido } }
+        )
+        setProgresso(map)
+      }
+
       setLoading(false)
     }
 
-    fetchModulos()
+    fetchData()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const modulosFiltrados =
     filtro === 'todos'
       ? modulos
-      : modulos.filter((m) => m.nivel_dificuldade === filtro)
+      : modulos.filter((m) => m.dificuldade === filtro)
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Módulos de aprendizagem</h1>
         <p className="text-slate-500 mt-1">
@@ -79,21 +96,17 @@ export default function ModulosPage() {
                 : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
-            {nivel === 'todos'
-              ? 'Todos'
-              : nivelLabels[nivel as NivelDificuldade]}
+            {nivel === 'todos' ? 'Todos' : nivelLabels[nivel as NivelDificuldade]}
           </button>
         ))}
       </div>
 
-      {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
         </div>
       )}
 
-      {/* Empty state */}
       {!loading && modulosFiltrados.length === 0 && (
         <div className="text-center py-16">
           <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-3" />
@@ -108,56 +121,82 @@ export default function ModulosPage() {
         </div>
       )}
 
-      {/* Modules grid */}
       {!loading && modulosFiltrados.length > 0 && (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {modulosFiltrados.map((modulo) => (
-            <Card
-              key={modulo.id}
-              className="flex flex-col hover:shadow-md transition-shadow"
-            >
-              {/* Image placeholder */}
-              <div className="h-40 rounded-t-xl bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center">
-                <BookOpen className="h-12 w-12 text-white/60" />
-              </div>
+          {modulosFiltrados.map((modulo) => {
+            const p = progresso[modulo.id]
+            const percentagem = p?.percentagem ?? 0
+            const concluido = p?.concluido ?? false
+            const iniciado = percentagem > 0
 
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base leading-snug">
-                    {modulo.titulo}
-                  </CardTitle>
-                  <Badge
-                    variant={modulo.nivel_dificuldade as NivelDificuldade}
-                    className="flex-shrink-0"
-                  >
-                    {nivelLabels[modulo.nivel_dificuldade]}
-                  </Badge>
+            return (
+              <Card key={modulo.id} className="flex flex-col hover:shadow-md transition-shadow">
+                {/* Thumbnail */}
+                <div className="relative h-40 rounded-t-xl bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center overflow-hidden">
+                  <BookOpen className="h-12 w-12 text-white/60" />
+                  {concluido && (
+                    <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-green-500 px-2.5 py-1 text-xs font-semibold text-white shadow">
+                      <CheckCircle className="h-3 w-3" />
+                      Concluído
+                    </div>
+                  )}
                 </div>
-                {modulo.descricao && (
-                  <CardDescription className="line-clamp-2 text-xs">
-                    {modulo.descricao}
-                  </CardDescription>
-                )}
-              </CardHeader>
 
-              <CardContent className="flex-1">
-                <div
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-                    nivelColors[modulo.nivel_dificuldade]
-                  }`}
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                  Nível {nivelLabels[modulo.nivel_dificuldade]}
-                </div>
-              </CardContent>
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-base leading-snug">{modulo.titulo}</CardTitle>
+                    <Badge variant={modulo.dificuldade} className="flex-shrink-0">
+                      {nivelLabels[modulo.dificuldade]}
+                    </Badge>
+                  </div>
+                  {modulo.descricao && (
+                    <CardDescription className="line-clamp-2 text-xs">
+                      {modulo.descricao}
+                    </CardDescription>
+                  )}
+                </CardHeader>
 
-              <CardFooter className="pt-0">
-                <Button className="w-full" size="sm">
-                  Começar módulo
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+                <CardContent className="flex-1 space-y-2">
+                  {modulo.duracao_minutos && (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>{modulo.duracao_minutos} min</span>
+                    </div>
+                  )}
+
+                  {/* Progress bar */}
+                  {iniciado && (
+                    <div>
+                      <div className="flex justify-between text-xs text-slate-500 mb-1">
+                        <span>{concluido ? 'Concluído' : 'Em progresso'}</span>
+                        <span>{Math.round(percentagem)}%</span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-slate-100">
+                        <div
+                          className={`h-1.5 rounded-full transition-all ${
+                            concluido ? 'bg-green-500' : 'bg-blue-500'
+                          }`}
+                          style={{ width: `${percentagem}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+
+                <CardFooter className="pt-0">
+                  <Link href={`/aluno/modulos/${modulo.id}`} className="w-full">
+                    <Button
+                      className="w-full"
+                      size="sm"
+                      variant={concluido ? 'outline' : 'default'}
+                    >
+                      {concluido ? 'Rever módulo' : iniciado ? 'Continuar' : 'Começar módulo'}
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            )
+          })}
         </div>
       )}
     </div>

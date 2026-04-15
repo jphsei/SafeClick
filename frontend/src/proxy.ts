@@ -8,19 +8,17 @@ export async function proxy(request: NextRequest) {
   const { supabaseResponse, user, supabase } = await updateSession(request)
   const pathname = request.nextUrl.pathname
 
-  const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
-    pathname.startsWith(route)
-  )
-  const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route))
+  const isProtectedRoute = PROTECTED_ROUTES.some((r) => pathname.startsWith(r))
+  const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r))
 
-  // Unauthenticated user trying to access protected route
+  // ── 1. Rotas protegidas exigem sessão ─────────────────────────────────────
   if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Authenticated user trying to access auth routes - redirect to their dashboard
+  // ── 2. Utilizador autenticado não deve ver login/registo ──────────────────
   if (isAuthRoute && user) {
     const { data: perfilRaw } = await supabase
       .from('perfis')
@@ -28,16 +26,9 @@ export async function proxy(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    const perfil = perfilRaw as { papel: string } | null
-
+    const papel = (perfilRaw as { papel: string } | null)?.papel
     const url = request.nextUrl.clone()
-    if (perfil?.papel === 'professor') {
-      url.pathname = '/professor'
-    } else if (perfil?.papel === 'administrador') {
-      url.pathname = '/admin'
-    } else {
-      url.pathname = '/aluno'
-    }
+    url.pathname = papel === 'professor' ? '/professor' : papel === 'administrador' ? '/admin' : '/aluno'
     return NextResponse.redirect(url)
   }
 
@@ -46,13 +37,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

@@ -31,16 +31,23 @@ export default async function DashboardLayout({
   const nomeCompleto: string = perfil?.nome_completo ?? 'Utilizador'
   const email: string = perfil?.email ?? user.email ?? ''
 
+  const { count: notificacoesNaoLidas } = await supabase
+    .from('notificacoes')
+    .select('*', { count: 'exact', head: true })
+    .eq('utilizador_id', user.id)
+    .eq('lida', false)
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       {/* Sidebar */}
       <Sidebar papel={papel} />
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         <Header
           nomeUtilizador={nomeCompleto}
           email={email}
+          notificacoesNaoLidas={notificacoesNaoLidas ?? 0}
         />
         <main className="flex-1 overflow-y-auto p-6">
           {children}

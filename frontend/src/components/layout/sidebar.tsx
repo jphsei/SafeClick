@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -11,11 +12,11 @@ import {
   Trophy,
   Users,
   FolderOpen,
-  FileText,
   BarChart3,
   School,
   Settings,
   ShieldCheck,
+  X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { type PapelUtilizador } from '@/lib/types/database.types'
@@ -53,12 +54,9 @@ const adminNav: NavItem[] = [
 
 function getNavItems(papel: PapelUtilizador): NavItem[] {
   switch (papel) {
-    case 'professor':
-      return professorNav
-    case 'administrador':
-      return adminNav
-    default:
-      return alunoNav
+    case 'professor': return professorNav
+    case 'administrador': return adminNav
+    default: return alunoNav
   }
 }
 
@@ -66,27 +64,45 @@ interface SidebarProps {
   papel: PapelUtilizador
 }
 
-export function Sidebar({ papel }: SidebarProps) {
+function SidebarContent({
+  papel,
+  onClose,
+}: {
+  papel: PapelUtilizador
+  onClose?: () => void
+}) {
   const pathname = usePathname()
   const navItems = getNavItems(papel)
 
   return (
-    <aside className="flex h-full w-64 flex-col bg-slate-900 text-white">
+    <div className="flex h-full flex-col bg-slate-900 text-white">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-700">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
-          <ShieldCheck className="h-5 w-5 text-white" />
+      <div className="flex items-center justify-between px-6 py-5 border-b border-slate-700">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
+            <ShieldCheck className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <span className="text-lg font-bold text-white">SafeClick</span>
+            <p className="text-xs text-slate-400 leading-none mt-0.5">
+              {papel === 'aluno'
+                ? 'Portal do Aluno'
+                : papel === 'professor'
+                ? 'Portal do Professor'
+                : 'Painel de Administração'}
+            </p>
+          </div>
         </div>
-        <div>
-          <span className="text-lg font-bold text-white">SafeClick</span>
-          <p className="text-xs text-slate-400 leading-none mt-0.5">
-            {papel === 'aluno'
-              ? 'Portal do Aluno'
-              : papel === 'professor'
-              ? 'Portal do Professor'
-              : 'Painel de Administração'}
-          </p>
-        </div>
+        {/* Close button (mobile only) */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden text-slate-400 hover:text-white transition-colors"
+            aria-label="Fechar menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -105,6 +121,7 @@ export function Sidebar({ papel }: SidebarProps) {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={onClose}
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                     isActive
@@ -127,6 +144,47 @@ export function Sidebar({ papel }: SidebarProps) {
           &copy; {new Date().getFullYear()} SafeClick
         </p>
       </div>
-    </aside>
+    </div>
+  )
+}
+
+export function Sidebar({ papel }: SidebarProps) {
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  // Listen for toggle event from Header hamburger button
+  useEffect(() => {
+    const handler = () => setMobileOpen((o) => !o)
+    document.addEventListener('toggle-sidebar', handler)
+    return () => document.removeEventListener('toggle-sidebar', handler)
+  }, [])
+
+  // Close on route change
+  const pathname = usePathname()
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex h-full w-64 flex-shrink-0 flex-col">
+        <SidebarContent papel={papel} />
+      </aside>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-40 flex">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setMobileOpen(false)}
+          />
+          {/* Drawer */}
+          <aside className="relative z-50 w-72 flex-shrink-0">
+            <SidebarContent papel={papel} onClose={() => setMobileOpen(false)} />
+          </aside>
+        </div>
+      )}
+    </>
   )
 }
