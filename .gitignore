@@ -33,3 +33,7 @@ next-env.d.ts
 
 # Testing
 coverage/
+
+# Claude Code local settings
+setjs/
+.claude/
