@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { sanitizeEmailHtml } from '@/lib/sanitize'
 import { SimulacaoClient } from './simulacao-client'
 import { type EstadoSimulacao } from '@/lib/types/database.types'
 
@@ -78,7 +79,10 @@ export default async function SimulacaoPage({
         simulacaoId={sim.id}
         titulo={sim.titulo}
         assuntoEmail={sim.assunto_email}
-        corpoEmail={sim.corpo_email}
+        // O HTML é sanitizado no servidor antes de chegar ao browser.
+        // O cliente confia que o que recebe está limpo (script tags,
+        // event handlers e javascript: URLs removidos).
+        corpoEmail={sanitizeEmailHtml(sim.corpo_email)}
         remetenteFalso={sim.remetente_falso}
         urlFalso={sim.url_falso}
         pistas={sim.pistas}
