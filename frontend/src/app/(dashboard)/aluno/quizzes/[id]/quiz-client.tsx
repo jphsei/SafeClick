@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
-type Opcao = { id: string; texto: string; correta: boolean; ordem: number }
+type Opcao = { id: string; texto: string; ordem: number }
 type Pergunta = {
   id: string
   enunciado: string
@@ -15,6 +15,26 @@ type Pergunta = {
   pontos: number
   ordem: number
   opcoes: Opcao[]
+}
+
+type DetalheResposta = {
+  pergunta_id: string
+  opcao_dada_id: string | null
+  correta: boolean
+  opcao_correta_id: string | null
+  opcao_correta_texto: string | null
+}
+
+type ResultadoRPC = {
+  ok: boolean
+  erro?: string
+  tentativa_id?: string
+  nota?: number
+  pontos_ganhos?: number
+  corretas?: number
+  total?: number
+  tentativas_restantes?: number
+  detalhes?: DetalheResposta[]
 }
 
 interface QuizClientProps {
@@ -50,13 +70,14 @@ export function QuizClient({
   const [fase, setFase] = useState<Fase>('intro')
   const [respostas, setRespostas] = useState<Record<string, string>>({}) // perguntaId -> opcaoId
   const [submitting, setSubmitting] = useState(false)
+  const [erroSubmissao, setErroSubmissao] = useState<string | null>(null)
   const [tentativasUsadas, setTentativasUsadas] = useState(tentativasFeitas)
   const [resultado, setResultado] = useState<{
     nota: number
     pontosGanhos: number
     corretas: number
     total: number
-    detalhes: { perguntaId: string; correta: boolean }[]
+    detalhes: DetalheResposta[]
   } | null>(null)
 
   const [tempoRestante, setTempoRestante] = useState<number | null>(
@@ -66,93 +87,43 @@ export function QuizClient({
   const handleSubmit = useCallback(async () => {
     if (submitting) return
     setSubmitting(true)
+    setErroSubmissao(null)
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) { setSubmitting(false); return }
-
-    // Calculate results
-    let corretas = 0
-    let pontosGanhos = 0
-    const detalhes: { perguntaId: string; correta: boolean }[] = []
-
-    for (const pergunta of perguntas) {
-      const opcaoSelecionadaId = respostas[pergunta.id]
-      const opcaoCorreta = pergunta.opcoes.find((o) => o.correta)
-      const acertou = opcaoSelecionadaId === opcaoCorreta?.id
-
-      if (acertou) {
-        corretas++
-        pontosGanhos += pergunta.pontos
-      }
-      detalhes.push({ perguntaId: pergunta.id, correta: acertou })
-    }
-
-    const nota = perguntas.length > 0 ? (corretas / perguntas.length) * 100 : 0
-
-    // Save tentativa (type cast needed for supabase-js v2.99 compatibility)
+    // O cálculo de corretas, nota e atribuição de pontos é feito no
+    // servidor pela RPC fn_submeter_quiz. O cliente apenas envia
+    // { pergunta_id: opcao_id } e recebe o resultado já validado.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: tentativa } = await (supabase.from('tentativas_quiz') as any)
-      .insert({
-        quiz_id: quizId,
-        aluno_id: user.id,
-        nota,
-        pontos_ganhos: pontosGanhos,
-        concluido: true,
-        concluido_em: new Date().toISOString(),
-      })
-      .select('id')
-      .single()
+    const { data, error } = await (supabase.rpc as any)('fn_submeter_quiz', {
+      p_quiz_id:   quizId,
+      p_respostas: respostas,
+    })
 
-    // Save respostas
-    if (tentativa?.id) {
-      const respostasInsert = perguntas
-        .filter((p) => respostas[p.id])
-        .map((p) => {
-          const opcaoSelecionadaId = respostas[p.id]
-          const opcaoCorreta = p.opcoes.find((o) => o.correta)
-          return {
-            tentativa_id: tentativa.id,
-            pergunta_id: p.id,
-            opcao_id: opcaoSelecionadaId,
-            correta: opcaoSelecionadaId === opcaoCorreta?.id,
-          }
-        })
-
-      if (respostasInsert.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase.from('respostas_tentativa') as any).insert(respostasInsert)
-      }
-
-      // Update user points
-      if (pontosGanhos > 0) {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await (supabase as any).rpc('fn_atualizar_pontos', {
-            p_utilizador_id: user.id,
-            p_pontos: pontosGanhos,
-          })
-        } catch {
-          // silently ignore
-        }
-      }
+    if (error) {
+      setErroSubmissao('Erro ao submeter o quiz. Tenta novamente.')
+      setSubmitting(false)
+      return
     }
 
-    // Check and award badges
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).rpc('fn_verificar_badges', { p_aluno_id: user.id })
-    } catch {
-      // silently ignore
+    const res = data as ResultadoRPC
+
+    if (!res?.ok) {
+      setErroSubmissao(res?.erro ?? 'Não foi possível submeter o quiz.')
+      setSubmitting(false)
+      return
     }
 
     setTentativasUsadas((prev) => prev + 1)
-    setResultado({ nota, pontosGanhos, corretas, total: perguntas.length, detalhes })
+    setResultado({
+      nota:         res.nota ?? 0,
+      pontosGanhos: res.pontos_ganhos ?? 0,
+      corretas:     res.corretas ?? 0,
+      total:        res.total ?? perguntas.length,
+      detalhes:     res.detalhes ?? [],
+    })
     setFase('resultado')
     setSubmitting(false)
     router.refresh()
-  }, [supabase, quizId, perguntas, respostas, submitting, router])
+  }, [supabase, quizId, respostas, perguntas.length, submitting, router])
 
   // Timer countdown
   useEffect(() => {
@@ -273,9 +244,10 @@ export function QuizClient({
         {/* Respostas detalhadas */}
         <div className="space-y-3">
           {perguntas.map((pergunta) => {
-            const detalhe = resultado.detalhes.find((d) => d.perguntaId === pergunta.id)
+            // O resultado correto/incorreto e o gabarito vêm da RPC
+            // (não temos `correta` no payload das opções no cliente)
+            const detalhe = resultado.detalhes.find((d) => d.pergunta_id === pergunta.id)
             const opcaoSelecionada = pergunta.opcoes.find((o) => o.id === respostas[pergunta.id])
-            const opcaoCorreta = pergunta.opcoes.find((o) => o.correta)
 
             return (
               <Card key={pergunta.id} className={detalhe?.correta ? 'border-green-200' : 'border-red-200'}>
@@ -290,13 +262,13 @@ export function QuizClient({
                       <p className="font-medium text-slate-900 text-sm">{pergunta.enunciado}</p>
                       {!detalhe?.correta && (
                         <div className="mt-2 space-y-1 text-xs">
-                          {opcaoSelecionada && opcaoSelecionada.id !== opcaoCorreta?.id && (
+                          {opcaoSelecionada && opcaoSelecionada.id !== detalhe?.opcao_correta_id && (
                             <p className="text-red-600">
                               A tua resposta: {opcaoSelecionada.texto}
                             </p>
                           )}
                           <p className="text-green-600 font-medium">
-                            Resposta correta: {opcaoCorreta?.texto ?? '—'}
+                            Resposta correta: {detalhe?.opcao_correta_texto ?? '—'}
                           </p>
                         </div>
                       )}
@@ -380,6 +352,13 @@ export function QuizClient({
           </Card>
         ))}
       </div>
+
+      {/* Erro */}
+      {erroSubmissao && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {erroSubmissao}
+        </div>
+      )}
 
       {/* Submit */}
       <div className="flex items-center justify-between gap-4 pt-2">
