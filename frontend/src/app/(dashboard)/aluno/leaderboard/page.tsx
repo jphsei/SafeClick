@@ -1,15 +1,9 @@
-import { redirect } from 'next/navigation'
 import { Trophy, Medal, Star } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireUser } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default async function LeaderboardPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const { user, supabase } = await requireUser()
 
   const { data: rankingRaw } = await supabase
     .from('v_leaderboard')

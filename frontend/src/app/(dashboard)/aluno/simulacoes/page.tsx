@@ -1,7 +1,6 @@
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ShieldAlert, ShieldCheck, ShieldX, Star } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireUser } from '@/lib/auth/require-role'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -20,12 +19,7 @@ const estadoLabels: Record<string, { label: string; color: string }> = {
 }
 
 export default async function SimulacoesPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const { user, supabase } = await requireUser()
 
   const { data: simulacoesRaw } = await supabase
     .from('simulacoes_phishing')

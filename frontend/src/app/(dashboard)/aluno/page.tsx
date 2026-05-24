@@ -1,7 +1,6 @@
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { BookOpen, Award, Star, ArrowRight, TrendingUp } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { type NivelDificuldade } from '@/lib/types/database.types'
@@ -13,30 +12,18 @@ const nivelLabel: Record<NivelDificuldade, string> = {
 }
 
 export default async function AlunoDashboardPage() {
-  const supabase = await createClient()
+  const { user, perfil, supabase } = await requireRole('aluno')
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
+  // `requireRole` devolve o perfil mínimo (papel, nome_completo, email).
+  // Buscamos `pontos_total` à parte para esta page.
+  const { data: extra } = await supabase
     .from('perfis')
-    .select('nome_completo, pontos_total, papel')
+    .select('pontos_total')
     .eq('id', user.id)
     .single()
 
-  const perfil = perfilRaw as { nome_completo: string; pontos_total: number; papel: string } | null
-
-  if (perfil?.papel !== 'aluno') {
-    if (perfil?.papel === 'professor') redirect('/professor')
-    if (perfil?.papel === 'administrador') redirect('/admin')
-  }
-
-  const nomeCompleto = perfil?.nome_completo ?? 'Aluno'
-  const primeiroNome = nomeCompleto.split(' ')[0]
-  const pontosTotal = perfil?.pontos_total ?? 0
+  const primeiroNome = perfil.nome_completo.split(' ')[0]
+  const pontosTotal = extra?.pontos_total ?? 0
 
   const { data: progressoDataRaw } = await supabase
     .from('progresso_modulo')

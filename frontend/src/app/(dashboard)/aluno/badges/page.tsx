@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation'
 import { Award } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireUser } from '@/lib/auth/require-role'
 import { Card, CardContent } from '@/components/ui/card'
 
 type BadgeWithDetails = {
@@ -15,12 +14,7 @@ type BadgeWithDetails = {
 }
 
 export default async function BadgesPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const { user, supabase } = await requireUser()
 
   const { data: badgesGanhosRaw } = await supabase
     .from('utilizador_badges')

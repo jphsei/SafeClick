@@ -1,7 +1,7 @@
-import { redirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireUser } from '@/lib/auth/require-role'
 import { QuizClient } from './quiz-client'
 
 export default async function QuizPage({
@@ -10,12 +10,7 @@ export default async function QuizPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const { user, supabase } = await requireUser()
 
   const { data: quizRaw } = await supabase
     .from('quizzes')
