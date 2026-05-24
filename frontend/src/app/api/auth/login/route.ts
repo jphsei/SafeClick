@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
   // ── 2. Rate limiting ──────────────────────────────────────────────────────
   const ip = getClientIp(request)
   const rateLimitKey = `${ip}:${email.toLowerCase().trim()}`
-  const limit = checkRateLimit(rateLimitKey)
+  const limit = await checkRateLimit(rateLimitKey)
 
   if (!limit.allowed) {
     const minutes = Math.ceil((limit.retryAfterSeconds ?? 900) / 60)
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Erro ao entrar. Tenta novamente.' }, { status: 400 })
   }
 
-  resetRateLimit(rateLimitKey)
+  await resetRateLimit(rateLimitKey)
   console.info(`[AUTH] Login bem-sucedido — ip=${ip} email=${email}`)
 
   // ── 5. Verificar se o papel exige OTP por email ───────────────────────────
@@ -128,14 +128,18 @@ export async function POST(request: NextRequest) {
   const codeHash = hashOtpCode(code)
   const admin = createAdminClient()
 
-  // Apagar sessões OTP antigas do mesmo utilizador (evitar acumulação)
+  // Apagar sessões OTP antigas do mesmo utilizador (evitar acumulação).
+  // Os casts `as any` são temporários — a tabela `email_otp_sessions`
+  // não está nos tipos gerados do Supabase (foi adicionada depois).
+  // Resolve-se quando regenerarmos os tipos (P1 da revisão).
   await admin
     .from('email_otp_sessions')
     .delete()
     .eq('user_id', data.user.id)
 
-  const { data: otpSession, error: otpError } = await admin
-    .from('email_otp_sessions')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: otpSession, error: otpError } = await (admin
+    .from('email_otp_sessions') as any)
     .insert({
       user_id: data.user.id,
       code_hash: codeHash,

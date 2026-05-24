@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   // ── 2. Rate limiting (por sessão OTP) ─────────────────────────────────────
   const ip = getClientIp(request)
   const rateLimitKey = `otp:${ip}:${otp_session_id}`
-  const limit = checkRateLimit(rateLimitKey)
+  const limit = await checkRateLimit(rateLimitKey)
 
   if (!limit.allowed) {
     return NextResponse.json(
@@ -43,9 +43,12 @@ export async function POST(request: NextRequest) {
   }
 
   // ── 3. Buscar sessão OTP na BD ────────────────────────────────────────────
+  // Casts `as any` temporários — a tabela `email_otp_sessions` não está
+  // nos tipos gerados (P1 da revisão regenera tudo).
   const admin = createAdminClient()
-  const { data: session, error: fetchError } = await admin
-    .from('email_otp_sessions')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: session, error: fetchError } = await (admin
+    .from('email_otp_sessions') as any)
     .select('id, code_hash, expires_at, used')
     .eq('id', otp_session_id)
     .single()
@@ -81,8 +84,8 @@ export async function POST(request: NextRequest) {
   }
 
   // ── 5. Marcar como usado ──────────────────────────────────────────────────
-  await admin
-    .from('email_otp_sessions')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (admin.from('email_otp_sessions') as any)
     .update({ used: true })
     .eq('id', otp_session_id)
 
