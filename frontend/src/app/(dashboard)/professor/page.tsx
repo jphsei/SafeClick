@@ -1,34 +1,14 @@
 export const dynamic = 'force-dynamic'
 
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Users, BookOpen, TrendingUp, ArrowRight, GraduationCap } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
 export default async function ProfessorDashboardPage() {
-  const supabase = await createClient()
+  const { user, perfil, supabase } = await requireRole('professor')
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
-    .from('perfis')
-    .select('nome_completo, papel')
-    .eq('id', user.id)
-    .single()
-
-  const perfil = perfilRaw as { nome_completo: string; papel: string } | null
-
-  if (perfil?.papel !== 'professor') {
-    if (perfil?.papel === 'aluno') redirect('/aluno')
-    if (perfil?.papel === 'administrador') redirect('/admin')
-  }
-
-  const primeiroNome = (perfil?.nome_completo ?? 'Professor').split(' ')[0]
+  const primeiroNome = perfil.nome_completo.split(' ')[0]
 
   // Fetch professor's turmas
   // TODO: Implement real turma stats once class management is built
