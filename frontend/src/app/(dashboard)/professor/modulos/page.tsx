@@ -1,8 +1,7 @@
 export const dynamic = 'force-dynamic'
 
-import { redirect } from 'next/navigation'
 import { BookOpen, Clock, Users } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { type NivelDificuldade } from '@/lib/types/database.types'
@@ -15,20 +14,7 @@ const nivelLabels: Record<NivelDificuldade, string> = {
 }
 
 export default async function ProfessorModulosPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
-    .from('perfis')
-    .select('papel')
-    .eq('id', user.id)
-    .single()
-
-  if ((perfilRaw as { papel: string } | null)?.papel !== 'professor') redirect('/aluno')
+  const { user, supabase } = await requireRole('professor')
 
   const { data: modulosRaw } = await supabase
     .from('modulos')

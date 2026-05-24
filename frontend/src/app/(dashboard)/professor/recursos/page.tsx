@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation'
 import { FolderOpen, FileText, Video, Presentation, Download } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent } from '@/components/ui/card'
 import { type TipoRecurso } from '@/lib/types/database.types'
 
@@ -29,20 +28,7 @@ const tipoColors: Record<TipoRecurso, string> = {
 }
 
 export default async function RecursosPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
-    .from('perfis')
-    .select('papel')
-    .eq('id', user.id)
-    .single()
-
-  if ((perfilRaw as { papel: string } | null)?.papel !== 'professor') redirect('/aluno')
+  const { supabase } = await requireRole('professor')
 
   const { data: recursosRaw } = await supabase
     .from('recursos_pedagogicos')

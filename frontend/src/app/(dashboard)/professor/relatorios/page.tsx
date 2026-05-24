@@ -1,26 +1,11 @@
 export const dynamic = 'force-dynamic'
 
-import { redirect } from 'next/navigation'
 import { BarChart3, Users, TrendingUp, ShieldAlert } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
 export default async function RelatoriosPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
-    .from('perfis')
-    .select('papel')
-    .eq('id', user.id)
-    .single()
-
-  const perfil = perfilRaw as { papel: string } | null
-  if (perfil?.papel !== 'professor') redirect('/aluno')
+  const { user, supabase } = await requireRole('professor')
 
   // Fetch professor's turmas
   const { data: turmasRaw } = await supabase

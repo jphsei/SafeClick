@@ -1,7 +1,7 @@
-import { redirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, BookOpen, Clock, CheckCircle } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireUser } from '@/lib/auth/require-role'
 import { Card, CardContent } from '@/components/ui/card'
 import { ConcluirAulaButton } from './concluir-aula-button'
 
@@ -11,12 +11,7 @@ export default async function AulaPage({
   params: Promise<{ id: string; aulaId: string }>
 }) {
   const { id, aulaId } = await params
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const { user, supabase } = await requireUser()
 
   const { data: aulaRaw } = await supabase
     .from('aulas')

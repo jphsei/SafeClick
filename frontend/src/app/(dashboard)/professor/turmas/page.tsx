@@ -1,9 +1,8 @@
 export const dynamic = 'force-dynamic'
 
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Users, GraduationCap, ArrowRight } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { NovaTurmaForm } from './nova-turma-form'
 
@@ -18,21 +17,17 @@ type TurmaComStats = {
 }
 
 export default async function TurmasPage() {
-  const supabase = await createClient()
+  const { user, supabase } = await requireRole('professor')
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
+  // Para a NovaTurmaForm precisamos do `escola_id` do professor.
+  // O perfil mínimo do helper não inclui esse campo — buscamos separadamente.
+  const { data: extra } = await supabase
     .from('perfis')
-    .select('papel, escola_id')
+    .select('escola_id')
     .eq('id', user.id)
     .single()
 
-  const perfil = perfilRaw as { papel: string; escola_id: string | null } | null
-  if (perfil?.papel !== 'professor') redirect('/aluno')
+  const escolaId = extra?.escola_id ?? null
 
   const { data: turmasRaw } = await supabase
     .from('turmas')
@@ -93,7 +88,7 @@ export default async function TurmasPage() {
               : `${turmas.length} turma${turmas.length !== 1 ? 's' : ''} ativa${turmas.length !== 1 ? 's' : ''}`}
           </p>
         </div>
-        <NovaTurmaForm professorId={user.id} escolaId={perfil?.escola_id ?? null} />
+        <NovaTurmaForm professorId={user.id} escolaId={escolaId} />
       </div>
 
       {turmasComStats.length === 0 ? (

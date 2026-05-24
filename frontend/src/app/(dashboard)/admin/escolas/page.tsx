@@ -1,23 +1,9 @@
-import { redirect } from 'next/navigation'
 import { School, MapPin, Phone, Mail } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent } from '@/components/ui/card'
 
 export default async function AdminEscolasPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
-    .from('perfis')
-    .select('papel')
-    .eq('id', user.id)
-    .single()
-
-  if ((perfilRaw as { papel: string } | null)?.papel !== 'administrador') redirect('/aluno')
+  const { supabase } = await requireRole('administrador')
 
   const { data: escolasRaw } = await supabase
     .from('escolas')

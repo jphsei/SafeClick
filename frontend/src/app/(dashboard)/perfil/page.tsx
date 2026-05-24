@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation'
 import { User, Mail, School, Hash, Star, BookOpen, Award, Calendar } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireProfile } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { type PapelUtilizador } from '@/lib/types/database.types'
 
@@ -17,20 +16,9 @@ const papelColors: Record<PapelUtilizador, string> = {
 }
 
 export default async function PerfilPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
-    .from('perfis')
-    .select('nome_completo, email, papel, pontos_total, numero_aluno, criado_em, escolas(nome)')
-    .eq('id', user.id)
-    .single()
-
-  const perfil = perfilRaw as {
+  // Página partilhada entre papéis — sem check de `papel`, mas precisamos
+  // de um perfil completo (com `escolas` join) para mostrar a info.
+  const { user, perfil, supabase } = await requireProfile<{
     nome_completo: string
     email: string
     papel: PapelUtilizador
@@ -38,9 +26,7 @@ export default async function PerfilPage() {
     numero_aluno: string | null
     criado_em: string
     escolas: { nome: string } | null
-  } | null
-
-  if (!perfil) redirect('/login')
+  }>('nome_completo, email, papel, pontos_total, numero_aluno, criado_em, escolas(nome)')
 
   // Stats
   const { data: progressoRaw } = await supabase

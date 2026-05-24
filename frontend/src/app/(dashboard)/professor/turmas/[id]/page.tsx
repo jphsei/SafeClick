@@ -1,9 +1,9 @@
 export const dynamic = 'force-dynamic'
 
-import { redirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Users, BookOpen, TrendingUp, ShieldAlert, Key } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { AdicionarAlunoForm } from './adicionar-aluno-form'
 import { RemoverAlunoButton } from './remover-aluno-button'
@@ -15,20 +15,7 @@ export default async function TurmaDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
-    .from('perfis')
-    .select('papel')
-    .eq('id', user.id)
-    .single()
-
-  if ((perfilRaw as { papel: string } | null)?.papel !== 'professor') redirect('/aluno')
+  const { user, supabase } = await requireRole('professor')
 
   const { data: turmaRaw } = await supabase
     .from('turmas')
