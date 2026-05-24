@@ -136,7 +136,6 @@ export default async function AulaPage({
       {!jaConcluida && (
         <ConcluirAulaButton
           aulaId={aulaId}
-          moduloId={id}
           totalAulas={totalAulas}
           aulasConcluidas={aulasConcluidas}
           pontosConclusao={pontosConclusao}

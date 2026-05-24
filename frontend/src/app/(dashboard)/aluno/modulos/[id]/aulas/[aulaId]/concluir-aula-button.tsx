@@ -8,16 +8,23 @@ import { Button } from '@/components/ui/button'
 
 interface ConcluirAulaButtonProps {
   aulaId: string
-  moduloId: string
   totalAulas: number
   aulasConcluidas: string[]
   pontosConclusao: number
   nextAulaHref: string
 }
 
+type ResultadoConcluir = {
+  ok: boolean
+  erro?: string
+  ja_concluida?: boolean
+  pontos_ganhos?: number
+  modulo_concluido?: boolean
+  percentagem?: number
+}
+
 export function ConcluirAulaButton({
   aulaId,
-  moduloId,
   totalAulas,
   aulasConcluidas,
   pontosConclusao,
@@ -26,57 +33,35 @@ export function ConcluirAulaButton({
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
 
   async function handleConcluir() {
     setLoading(true)
+    setErro(null)
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
-
-    const novasAulas = [...new Set([...aulasConcluidas, aulaId])]
-    const percentagem = Math.round((novasAulas.length / totalAulas) * 100)
-    const concluido = novasAulas.length >= totalAulas
-
+    // Toda a lógica de cálculo de progresso, atribuição de pontos e
+    // verificação de badges está agora em fn_concluir_aula (SQL).
+    // O cliente só envia o ID da aula — não há mais nada a confiar.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from('progresso_modulo') as any).upsert(
-      {
-        aluno_id: user.id,
-        modulo_id: moduloId,
-        aulas_concluidas: novasAulas,
-        percentagem,
-        concluido,
-        ...(concluido ? { concluido_em: new Date().toISOString() } : {}),
-        atualizado_em: new Date().toISOString(),
-      },
-      { onConflict: 'aluno_id,modulo_id' }
-    )
+    const { data, error } = await (supabase.rpc as any)('fn_concluir_aula', {
+      p_aula_id: aulaId,
+    })
 
-    // Award module completion points when 100% done
-    if (concluido && pontosConclusao > 0) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase as any).rpc('fn_atualizar_pontos', {
-          p_utilizador_id: user.id,
-          p_pontos: pontosConclusao,
-        })
-      } catch {
-        // silently ignore
-      }
+    if (error) {
+      setErro('Erro ao concluir a aula. Tenta novamente.')
+      setLoading(false)
+      return
     }
 
-    // Check and award badges after each lesson (and especially on module completion)
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).rpc('fn_verificar_badges', {
-        p_aluno_id: user.id,
-      })
-    } catch {
-      // silently ignore
+    const res = data as ResultadoConcluir
+
+    if (!res?.ok) {
+      setErro(res?.erro ?? 'Não foi possível marcar a aula como concluída.')
+      setLoading(false)
+      return
     }
 
-    setLoading(false)
+    // Sucesso — navega para a próxima aula (ou volta ao módulo se foi a última)
     router.push(nextAulaHref)
     router.refresh()
   }
@@ -93,6 +78,9 @@ export function ConcluirAulaButton({
             <Star className="h-3 w-3" />
             Última aula — ganhas {pontosConclusao} pontos ao concluir o módulo!
           </p>
+        )}
+        {erro && (
+          <p className="text-xs text-red-600 mt-1">{erro}</p>
         )}
       </div>
       <Button
