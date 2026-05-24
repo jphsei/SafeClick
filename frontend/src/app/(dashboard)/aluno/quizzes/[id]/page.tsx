@@ -36,10 +36,12 @@ export default async function QuizPage({
     modulo_id: string | null
   }
 
-  // Fetch perguntas with opcoes
+  // Fetch perguntas with opcoes (sem o campo `correta` — o gabarito
+  // nunca pode chegar ao cliente; a validação acontece na RPC
+  // fn_submeter_quiz quando o aluno submete o quiz)
   const { data: perguntasRaw } = await supabase
     .from('perguntas')
-    .select('id, enunciado, tipo, pontos, ordem, opcoes_resposta(id, texto, correta, ordem)')
+    .select('id, enunciado, tipo, pontos, ordem, opcoes_resposta(id, texto, ordem)')
     .eq('quiz_id', id)
     .order('ordem')
 
@@ -49,7 +51,7 @@ export default async function QuizPage({
     tipo: string
     pontos: number
     ordem: number
-    opcoes_resposta: { id: string; texto: string; correta: boolean; ordem: number }[]
+    opcoes_resposta: { id: string; texto: string; ordem: number }[]
   }[])?.map((p) => ({
     ...p,
     opcoes: [...p.opcoes_resposta].sort((a, b) => a.ordem - b.ordem),
