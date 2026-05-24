@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation'
 import { BookOpen, Clock, Star } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { type NivelDificuldade, type EstadoModulo } from '@/lib/types/database.types'
@@ -24,20 +23,7 @@ const estadoLabels: Record<EstadoModulo, string> = {
 }
 
 export default async function AdminModulosPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
-    .from('perfis')
-    .select('papel')
-    .eq('id', user.id)
-    .single()
-
-  if ((perfilRaw as { papel: string } | null)?.papel !== 'administrador') redirect('/aluno')
+  const { supabase } = await requireRole('administrador')
 
   const { data: modulosRaw } = await supabase
     .from('modulos')

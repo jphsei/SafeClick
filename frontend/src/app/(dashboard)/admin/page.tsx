@@ -1,30 +1,10 @@
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { School, Users, BookOpen, Shield, TrendingUp, Activity, ArrowRight } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
 export default async function AdminDashboardPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
-    .from('perfis')
-    .select('nome_completo, papel')
-    .eq('id', user.id)
-    .single()
-
-  const perfil = perfilRaw as { nome_completo: string; papel: string } | null
-
-  if (perfil?.papel !== 'administrador') {
-    if (perfil?.papel === 'aluno') redirect('/aluno')
-    if (perfil?.papel === 'professor') redirect('/professor')
-  }
+  const { supabase } = await requireRole('administrador')
 
   const [
     { count: totalEscolas },

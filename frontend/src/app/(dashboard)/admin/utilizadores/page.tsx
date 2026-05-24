@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation'
 import { Users, GraduationCap, BookUser, ShieldCheck } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { type PapelUtilizador } from '@/lib/types/database.types'
 
@@ -23,20 +22,7 @@ const papelIcons: Record<PapelUtilizador, React.ComponentType<{ className?: stri
 }
 
 export default async function AdminUtilizadoresPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
-    .from('perfis')
-    .select('papel')
-    .eq('id', user.id)
-    .single()
-
-  if ((perfilRaw as { papel: string } | null)?.papel !== 'administrador') redirect('/aluno')
+  const { supabase } = await requireRole('administrador')
 
   const { data: utilizadoresRaw } = await supabase
     .from('perfis')

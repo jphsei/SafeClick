@@ -1,23 +1,9 @@
-import { redirect } from 'next/navigation'
 import { Settings, Database, Shield, Bell, Globe } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
 export default async function AdminConfiguracoesPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: perfilRaw } = await supabase
-    .from('perfis')
-    .select('papel')
-    .eq('id', user.id)
-    .single()
-
-  if ((perfilRaw as { papel: string } | null)?.papel !== 'administrador') redirect('/aluno')
+  await requireRole('administrador')
 
   const sections = [
     {
