@@ -42,8 +42,7 @@ export interface RateLimitResult {
 export async function checkRateLimit(key: string): Promise<RateLimitResult> {
   try {
     const admin = createAdminClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (admin.rpc as any)('fn_check_rate_limit', {
+    const { data, error } = await admin.rpc('fn_check_rate_limit', {
       p_key:             key,
       p_max_attempts:    MAX_ATTEMPTS,
       p_window_seconds:  WINDOW_SECONDS,
@@ -55,6 +54,8 @@ export async function checkRateLimit(key: string): Promise<RateLimitResult> {
       return { allowed: true, remaining: MAX_ATTEMPTS }
     }
 
+    // A RPC devolve JSONB com este shape — narrow via cast porque o
+    // tipo gerado é `Json` (a estrutura interna não é inferida).
     const res = data as {
       allowed: boolean
       attempts_left: number
@@ -80,10 +81,7 @@ export async function checkRateLimit(key: string): Promise<RateLimitResult> {
 export async function resetRateLimit(key: string): Promise<void> {
   try {
     const admin = createAdminClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (admin.rpc as any)('fn_reset_rate_limit', {
-      p_key: key,
-    })
+    const { error } = await admin.rpc('fn_reset_rate_limit', { p_key: key })
     if (error) {
       console.error('[rate-limiter] reset failed:', error.message)
     }

@@ -42,8 +42,7 @@ export function ConcluirAulaButton({
     // Toda a lógica de cálculo de progresso, atribuição de pontos e
     // verificação de badges está agora em fn_concluir_aula (SQL).
     // O cliente só envia o ID da aula — não há mais nada a confiar.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.rpc as any)('fn_concluir_aula', {
+    const { data, error } = await supabase.rpc('fn_concluir_aula', {
       p_aula_id: aulaId,
     })
 

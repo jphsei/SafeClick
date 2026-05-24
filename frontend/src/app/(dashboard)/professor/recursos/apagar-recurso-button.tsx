@@ -18,8 +18,8 @@ export function ApagarRecursoButton({ recursoId }: Props) {
     if (!confirm('Tens a certeza que queres apagar este recurso?')) return
 
     setLoading(true)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from('recursos_pedagogicos') as any)
+    await supabase
+      .from('recursos_pedagogicos')
       .delete()
       .eq('id', recursoId)
     setLoading(false)

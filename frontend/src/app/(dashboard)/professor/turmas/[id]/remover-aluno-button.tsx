@@ -19,8 +19,8 @@ export function RemoverAlunoButton({ turmaAlunoId }: RemoverAlunoButtonProps) {
     if (!confirm('Tens a certeza que queres remover este aluno da turma?')) return
 
     setLoading(true)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from('turma_alunos') as any)
+    await supabase
+      .from('turma_alunos')
       .update({ ativo: false })
       .eq('id', turmaAlunoId)
 
