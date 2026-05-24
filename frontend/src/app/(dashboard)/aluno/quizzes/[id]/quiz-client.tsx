@@ -92,8 +92,7 @@ export function QuizClient({
     // O cálculo de corretas, nota e atribuição de pontos é feito no
     // servidor pela RPC fn_submeter_quiz. O cliente apenas envia
     // { pergunta_id: opcao_id } e recebe o resultado já validado.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.rpc as any)('fn_submeter_quiz', {
+    const { data, error } = await supabase.rpc('fn_submeter_quiz', {
       p_quiz_id:   quizId,
       p_respostas: respostas,
     })

@@ -43,12 +43,9 @@ export async function POST(request: NextRequest) {
   }
 
   // ── 3. Buscar sessão OTP na BD ────────────────────────────────────────────
-  // Casts `as any` temporários — a tabela `email_otp_sessions` não está
-  // nos tipos gerados (P1 da revisão regenera tudo).
   const admin = createAdminClient()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: session, error: fetchError } = await (admin
-    .from('email_otp_sessions') as any)
+  const { data: session, error: fetchError } = await admin
+    .from('email_otp_sessions')
     .select('id, code_hash, expires_at, used')
     .eq('id', otp_session_id)
     .single()
@@ -84,8 +81,8 @@ export async function POST(request: NextRequest) {
   }
 
   // ── 5. Marcar como usado ──────────────────────────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (admin.from('email_otp_sessions') as any)
+  await admin
+    .from('email_otp_sessions')
     .update({ used: true })
     .eq('id', otp_session_id)
 

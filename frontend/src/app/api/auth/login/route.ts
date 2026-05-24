@@ -128,18 +128,14 @@ export async function POST(request: NextRequest) {
   const codeHash = hashOtpCode(code)
   const admin = createAdminClient()
 
-  // Apagar sessões OTP antigas do mesmo utilizador (evitar acumulação).
-  // Os casts `as any` são temporários — a tabela `email_otp_sessions`
-  // não está nos tipos gerados do Supabase (foi adicionada depois).
-  // Resolve-se quando regenerarmos os tipos (P1 da revisão).
+  // Apagar sessões OTP antigas do mesmo utilizador (evitar acumulação)
   await admin
     .from('email_otp_sessions')
     .delete()
     .eq('user_id', data.user.id)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: otpSession, error: otpError } = await (admin
-    .from('email_otp_sessions') as any)
+  const { data: otpSession, error: otpError } = await admin
+    .from('email_otp_sessions')
     .insert({
       user_id: data.user.id,
       code_hash: codeHash,
