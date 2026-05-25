@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { UserPlus, X, Loader2, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -14,7 +14,6 @@ interface AdicionarAlunoFormProps {
 
 export function AdicionarAlunoForm({ turmaId }: AdicionarAlunoFormProps) {
   const router = useRouter()
-  const pathname = usePathname()
   const supabase = createClient()
 
   const [open, setOpen] = useState(false)
@@ -90,7 +89,9 @@ export function AdicionarAlunoForm({ turmaId }: AdicionarAlunoFormProps) {
     setSuccess(`${aluno.nome_completo} adicionado com sucesso!`)
     setIdentifier('')
     setLoading(false)
-    window.location.reload()
+    // Refresca os Server Components da rota actual sem full reload —
+    // a lista de alunos atualiza-se a partir da BD.
+    router.refresh()
   }
 
   if (!open) {
