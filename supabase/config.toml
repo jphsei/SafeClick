@@ -96,9 +96,11 @@ openai_api_key = "env(OPENAI_API_KEY)"
 # Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
 # are monitored, and you can view the emails that would have been sent from the web interface.
 [inbucket]
-# Desligado: o projeto envia emails via SMTP real (config em .env.local),
-# por isso não precisamos do Inbucket a apanhar emails de teste.
-enabled = false
+# Apanha emails do Supabase Auth (reset de password, confirmação de
+# email, magic link). O OTP do login usa SMTP real via nodemailer
+# (config em .env.local) — esse não passa por aqui.
+# Aceder em http://127.0.0.1:54324
+enabled = true
 # Port to use for the email testing server web interface.
 port = 54324
 # Uncomment to expose additional ports for testing user applications that send emails.
@@ -156,7 +158,15 @@ enabled = true
 # in emails.
 site_url = "http://127.0.0.1:3000"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+# Wildcards permitidos via `**` para cobrir sub-paths como /auth/callback,
+# /redefinir-palavra-passe, etc. Sem isto, o Supabase rejeita redirects
+# e atira o utilizador para `site_url` (a landing page).
+additional_redirect_urls = [
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3000/**",
+  "http://localhost:3000",
+  "http://localhost:3000/**",
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to the local API URL (http://127.0.0.1:<port>/auth/v1).

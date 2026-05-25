@@ -8,29 +8,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-
-// ── Password policy ────────────────────────────────────────────────────────
-const SPECIAL_CHAR_RE = /[!@#$%^&*()\-_=+\[\]{};:'",.<>/?\\|`~]/
-
-function getPasswordChecks(pw: string) {
-  return {
-    length:  { ok: pw.length >= 10,          label: 'Mínimo 10 caracteres' },
-    letter:  { ok: /[a-zA-Z]/.test(pw),      label: 'Pelo menos uma letra' },
-    number:  { ok: /[0-9]/.test(pw),         label: 'Pelo menos um número' },
-    special: { ok: SPECIAL_CHAR_RE.test(pw), label: 'Pelo menos um carácter especial (!@#$…)' },
-  }
-}
-
-function passwordStrength(checks: ReturnType<typeof getPasswordChecks>): 0 | 1 | 2 | 3 {
-  const n = Object.values(checks).filter((c) => c.ok).length
-  if (n <= 1) return 0
-  if (n === 2) return 1
-  if (n === 3) return 2
-  return 3
-}
-
-const STRENGTH_LABELS = ['Fraca', 'Razoável', 'Boa', 'Forte']
-const STRENGTH_COLORS = ['bg-red-500', 'bg-orange-400', 'bg-yellow-400', 'bg-green-500']
+import { PasswordStrength } from '@/components/auth/password-strength'
+import { validatePassword, MIN_PASSWORD_LENGTH } from '@/lib/auth/password'
 
 type CodigoStatus = 'idle' | 'validando' | 'valido' | 'invalido'
 
@@ -49,8 +28,9 @@ export default function RegistoPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const checks = getPasswordChecks(password)
-  const strength = passwordStrength(checks)
+  // Estado de validação em tempo real para o botão de submit ficar
+  // desativado enquanto a password não cumprir todas as regras.
+  const passwordValid = validatePassword(password).valid
 
   // ── Live class code validation (debounced 600 ms) ─────────────────────────
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -88,21 +68,12 @@ export default function RegistoPage() {
     e.preventDefault()
     setError(null)
 
-    // ── Password validation ────────────────────────────────────────────────
-    if (password.length < 10) {
-      setError('A palavra-passe deve ter pelo menos 10 caracteres.')
-      return
-    }
-    if (!/[a-zA-Z]/.test(password)) {
-      setError('A palavra-passe deve conter pelo menos uma letra.')
-      return
-    }
-    if (!/[0-9]/.test(password)) {
-      setError('A palavra-passe deve conter pelo menos um número.')
-      return
-    }
-    if (!SPECIAL_CHAR_RE.test(password)) {
-      setError('A palavra-passe deve conter pelo menos um carácter especial (!@#$%…).')
+    // ── Password validation (regras em lib/auth/password.ts) ──────────────
+    const passwordCheck = validatePassword(password)
+    if (!passwordCheck.valid) {
+      // Mostra o primeiro erro — os restantes já aparecem em tempo real
+      // através do componente <PasswordStrength>.
+      setError(passwordCheck.errors[0])
       return
     }
     if (password !== confirmarPassword) {
@@ -277,7 +248,7 @@ export default function RegistoPage() {
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Mínimo 10 caracteres"
+              placeholder={`Mínimo ${MIN_PASSWORD_LENGTH} caracteres`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -294,42 +265,7 @@ export default function RegistoPage() {
             </button>
           </div>
 
-          {password.length > 0 && (
-            <div className="space-y-2 pt-1">
-              <div className="flex items-center gap-2">
-                <div className="flex flex-1 gap-1 h-1.5">
-                  {[0, 1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className={`flex-1 rounded-full transition-colors ${
-                        i <= strength ? STRENGTH_COLORS[strength] : 'bg-slate-200'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className={`text-xs font-medium ${
-                  strength === 3 ? 'text-green-600' :
-                  strength === 2 ? 'text-yellow-600' :
-                  strength === 1 ? 'text-orange-500' : 'text-red-500'
-                }`}>
-                  {STRENGTH_LABELS[strength]}
-                </span>
-              </div>
-              <ul className="space-y-0.5">
-                {Object.values(checks).map((c) => (
-                  <li key={c.label} className="flex items-center gap-1.5">
-                    {c.ok
-                      ? <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
-                      : <X className="h-3 w-3 text-slate-400 flex-shrink-0" />
-                    }
-                    <span className={`text-xs ${c.ok ? 'text-green-700' : 'text-slate-500'}`}>
-                      {c.label}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <PasswordStrength password={password} />
         </div>
 
         {/* Confirm password */}
@@ -354,7 +290,7 @@ export default function RegistoPage() {
           className="w-full"
           disabled={
             loading ||
-            strength < 3 ||
+            !passwordValid ||
             password !== confirmarPassword ||
             codigoStatus === 'validando' ||
             codigoStatus === 'invalido'
