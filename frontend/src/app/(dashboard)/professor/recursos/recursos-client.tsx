@@ -227,7 +227,10 @@ export function RecursosClient({ recursos, modulos, professorId }: Props) {
                         )}
 
                         {recurso.criado_por === professorId && (
-                          <ApagarRecursoButton recursoId={recurso.id} />
+                          <ApagarRecursoButton
+                            recursoId={recurso.id}
+                            tituloRecurso={recurso.titulo}
+                          />
                         )}
                       </div>
                     </div>
