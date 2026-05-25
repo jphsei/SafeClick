@@ -32,14 +32,15 @@ export function NovaTurmaForm({ professorId, escolaId }: NovaTurmaFormProps) {
     setLoading(true)
     setError(null)
 
-    // Diagnóstico: verificar se o browser está autenticado
+    // Verificar se o browser está autenticado antes de tentar o insert
+    // (o middleware costuma garantir isto, mas as sessões podem expirar
+    // entre o carregamento da page e a submissão do form).
     const { data: { user: currentUser } } = await supabase.auth.getUser()
     if (!currentUser) {
       setLoading(false)
       setError('Sessão expirada. Volta a fazer login.')
       return
     }
-    console.log('[NovaTurma] user.id =', currentUser.id, '| professorId =', professorId)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error: insertError } = await (supabase.from('turmas') as any).insert({
@@ -62,7 +63,9 @@ export function NovaTurmaForm({ professorId, escolaId }: NovaTurmaFormProps) {
     setDescricao('')
     setAnoLetivo('2025/2026')
     setOpen(false)
-    window.location.href = '/professor/turmas'
+    // Já estamos em /professor/turmas — só precisamos de re-correr os
+    // Server Components para a nova turma aparecer na lista.
+    router.refresh()
   }
 
   if (!open) {

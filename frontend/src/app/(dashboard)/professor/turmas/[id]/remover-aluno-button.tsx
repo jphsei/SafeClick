@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { UserMinus, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -11,7 +11,6 @@ interface RemoverAlunoButtonProps {
 
 export function RemoverAlunoButton({ turmaAlunoId }: RemoverAlunoButtonProps) {
   const router = useRouter()
-  const pathname = usePathname()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
 
@@ -25,7 +24,10 @@ export function RemoverAlunoButton({ turmaAlunoId }: RemoverAlunoButtonProps) {
       .eq('id', turmaAlunoId)
 
     setLoading(false)
-    window.location.reload()
+    // router.refresh() re-corre os Server Components da rota actual
+    // sem fazer full reload — o estado local de outros componentes
+    // mantém-se, mas as queries do servidor são re-executadas.
+    router.refresh()
   }
 
   return (
