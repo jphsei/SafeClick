@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PasswordStrength } from '@/components/auth/password-strength'
+import { validatePassword, MIN_PASSWORD_LENGTH } from '@/lib/auth/password'
 
 export default function RedefinirPalavraPassePage() {
   const router = useRouter()
@@ -19,6 +21,8 @@ export default function RedefinirPalavraPassePage() {
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
 
+  const passwordValid = validatePassword(password).valid
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
@@ -27,20 +31,31 @@ export default function RedefinirPalavraPassePage() {
       setError('As palavras-passe não coincidem.')
       return
     }
-    if (password.length < 6) {
-      setError('A palavra-passe deve ter pelo menos 6 caracteres.')
+
+    // Mesma política que no registo — usar `validatePassword` para
+    // impedir que o reset crie passwords mais fracas do que o signup.
+    const passwordCheck = validatePassword(password)
+    if (!passwordCheck.valid) {
+      setError(passwordCheck.errors[0])
       return
     }
 
     setLoading(true)
     const { error: updateError } = await supabase.auth.updateUser({ password })
-    setLoading(false)
 
     if (updateError) {
+      setLoading(false)
       setError('Não foi possível redefinir a palavra-passe. O link pode ter expirado.')
       return
     }
 
+    // Boa prática de segurança: terminar a sessão criada pelo link de
+    // recovery e forçar re-login com a nova password. Garante que a
+    // nova password funciona e invalida quaisquer sessões paralelas
+    // (ex: se a conta tiver sido comprometida).
+    await supabase.auth.signOut()
+
+    setLoading(false)
     setDone(true)
     setTimeout(() => router.push('/login'), 2500)
   }
@@ -85,10 +100,11 @@ export default function RedefinirPalavraPassePage() {
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Mínimo 6 caracteres"
+              placeholder={`Mínimo ${MIN_PASSWORD_LENGTH} caracteres`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="new-password"
               className="pr-10"
             />
             <button
@@ -99,6 +115,8 @@ export default function RedefinirPalavraPassePage() {
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
+
+          <PasswordStrength password={password} />
         </div>
 
         <div className="space-y-1.5">
@@ -110,10 +128,18 @@ export default function RedefinirPalavraPassePage() {
             value={confirmar}
             onChange={(e) => setConfirmar(e.target.value)}
             required
+            autoComplete="new-password"
           />
+          {confirmar && password !== confirmar && (
+            <p className="text-xs text-red-600">As palavras-passe não coincidem.</p>
+          )}
         </div>
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={loading || !passwordValid || password !== confirmar}
+        >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {loading ? 'A guardar...' : 'Guardar nova palavra-passe'}
         </Button>
