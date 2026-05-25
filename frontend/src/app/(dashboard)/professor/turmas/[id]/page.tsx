@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Users, BookOpen, TrendingUp, ShieldAlert, Key } from 'lucide-react'
 import { requireRole } from '@/lib/auth/require-role'
@@ -223,7 +223,10 @@ export default async function TurmaDetailPage({
                       </div>
                     )}
 
-                    <RemoverAlunoButton turmaAlunoId={aluno.id} />
+                    <RemoverAlunoButton
+                      turmaAlunoId={aluno.id}
+                      nomeAluno={aluno.perfis?.nome_completo ?? undefined}
+                    />
                   </div>
                 )
               })}
