@@ -1,6 +1,19 @@
 import { School, MapPin, Phone, Mail } from 'lucide-react'
 import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent } from '@/components/ui/card'
+import { EscolaForm } from './escola-form'
+import { DesativarEscolaButton } from './desativar-escola-button'
+
+interface EscolaRow {
+  id: string
+  nome: string
+  codigo_postal: string | null
+  cidade: string | null
+  morada: string | null
+  telefone: string | null
+  email: string | null
+  ativo: boolean
+}
 
 export default async function AdminEscolasPage() {
   const { supabase } = await requireRole('administrador')
@@ -10,18 +23,7 @@ export default async function AdminEscolasPage() {
     .select('id, nome, codigo_postal, cidade, morada, telefone, email, ativo')
     .order('nome')
 
-  const escolas =
-    (escolasRaw as {
-      id: string
-      nome: string
-      codigo_postal: string | null
-      cidade: string | null
-      morada: string | null
-      telefone: string | null
-      email: string | null
-      ativo: boolean
-    }[]) ?? []
-
+  const escolas = (escolasRaw as EscolaRow[] | null) ?? []
   const ativas = escolas.filter((e) => e.ativo).length
 
   return (
@@ -30,16 +32,19 @@ export default async function AdminEscolasPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Escolas</h1>
           <p className="text-slate-500 mt-1">
-            {ativas} escola{ativas !== 1 ? 's' : ''} registada{ativas !== 1 ? 's' : ''} e ativa{ativas !== 1 ? 's' : ''}
+            {ativas} escola{ativas !== 1 ? 's' : ''} ativa{ativas !== 1 ? 's' : ''}
+            {escolas.length > ativas && ` · ${escolas.length - ativas} inativa${escolas.length - ativas !== 1 ? 's' : ''}`}
           </p>
         </div>
+        <EscolaForm />
       </div>
 
       {escolas.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
             <School className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">Nenhuma escola registada.</p>
+            <p className="text-slate-500 mb-4">Nenhuma escola registada.</p>
+            <EscolaForm />
           </CardContent>
         </Card>
       ) : (
@@ -85,6 +90,14 @@ export default async function AdminEscolasPage() {
                         </p>
                       )}
                     </div>
+                  </div>
+                  <div className="flex-shrink-0 flex items-center gap-0.5">
+                    <EscolaForm escola={escola} />
+                    <DesativarEscolaButton
+                      escolaId={escola.id}
+                      nomeEscola={escola.nome}
+                      ativo={escola.ativo}
+                    />
                   </div>
                 </div>
               </CardContent>
