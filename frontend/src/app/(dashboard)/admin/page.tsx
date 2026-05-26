@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { School, Users, BookOpen, Shield, TrendingUp, Activity, ArrowRight } from 'lucide-react'
 import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { checkDatabase, checkAuth, type HealthResult } from '@/lib/health-check'
 
 export default async function AdminDashboardPage() {
   const { supabase } = await requireRole('administrador')
@@ -11,12 +12,21 @@ export default async function AdminDashboardPage() {
     { count: totalUtilizadores },
     { count: totalModulos },
     { count: totalSimulacoes },
+    dbHealth,
+    authHealth,
   ] = await Promise.all([
     supabase.from('escolas').select('*', { count: 'exact', head: true }).eq('ativo', true),
     supabase.from('perfis').select('*', { count: 'exact', head: true }).eq('ativo', true),
     supabase.from('modulos').select('*', { count: 'exact', head: true }).eq('estado', 'publicado'),
     supabase.from('simulacoes_phishing').select('*', { count: 'exact', head: true }).eq('ativo', true),
+    checkDatabase(supabase),
+    checkAuth(supabase),
   ])
+
+  const healthChecks: Array<{ label: string; result: HealthResult }> = [
+    { label: 'Base de dados',  result: dbHealth },
+    { label: 'Autenticação',   result: authHealth },
+  ]
 
   const stats = [
     { label: 'Escolas registadas', value: totalEscolas ?? 0, icon: School, color: 'bg-blue-100', iconColor: 'text-blue-600', href: '/admin/escolas' },
@@ -74,19 +84,16 @@ export default async function AdminDashboardPage() {
             <CardDescription>Saúde geral do sistema</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {[
-              { label: 'Base de dados', status: 'Operacional', ok: true },
-              { label: 'Autenticação', status: 'Operacional', ok: true },
-              { label: 'Armazenamento', status: 'Operacional', ok: true },
-            ].map((item) => (
+            {healthChecks.map(({ label, result }) => (
               <div
-                key={item.label}
+                key={label}
                 className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-2.5"
+                title={result.detail}
               >
-                <span className="text-sm text-slate-700">{item.label}</span>
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${item.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${item.ok ? 'bg-green-500' : 'bg-red-500'}`} />
-                  {item.status}
+                <span className="text-sm text-slate-700">{label}</span>
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${result.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${result.ok ? 'bg-green-500' : 'bg-red-500'}`} />
+                  {result.label}
                 </span>
               </div>
             ))}
