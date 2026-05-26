@@ -37,6 +37,24 @@ export default async function DashboardLayout({
     .eq('utilizador_id', user.id)
     .eq('lida', false)
 
+  // Últimas 10 notificações (lidas + não lidas) para o popover do header
+  const { data: notificacoesRaw } = await supabase
+    .from('notificacoes')
+    .select('id, titulo, mensagem, lida, tipo, url_destino, criado_em')
+    .eq('utilizador_id', user.id)
+    .order('criado_em', { ascending: false })
+    .limit(10)
+
+  const notificacoes = (notificacoesRaw as {
+    id: string
+    titulo: string
+    mensagem: string
+    lida: boolean
+    tipo: string
+    url_destino: string | null
+    criado_em: string
+  }[] | null) ?? []
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       {/* Sidebar */}
@@ -48,6 +66,7 @@ export default async function DashboardLayout({
           nomeUtilizador={nomeCompleto}
           email={email}
           notificacoesNaoLidas={notificacoesNaoLidas ?? 0}
+          notificacoes={notificacoes}
         />
         <main className="flex-1 overflow-y-auto p-6">
           {children}
