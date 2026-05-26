@@ -1,5 +1,21 @@
 import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
+
+// Geist é a font da Vercel — Carrega via `next/font/google` (auto-host,
+// sem pedidos a Google Fonts em runtime). As variáveis CSS são depois
+// usadas pelo Tailwind (`--font-sans` e `--font-mono` em globals.css).
+const geistSans = Geist({
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
+  display: 'swap',
+})
+
+const geistMono = Geist_Mono({
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'SafeClick - Cibersegurança para Escolas',
@@ -14,8 +30,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt">
-      <body className="antialiased bg-slate-50 text-slate-900">
+    <html lang="pt" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="antialiased bg-slate-50 text-slate-900 font-sans">
         {children}
       </body>
     </html>
