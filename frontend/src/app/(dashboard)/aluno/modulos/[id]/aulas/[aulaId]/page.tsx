@@ -18,6 +18,7 @@ export default async function AulaPage({
     .select('id, titulo, conteudo, ordem, duracao_minutos, modulo_id')
     .eq('id', aulaId)
     .eq('modulo_id', id)
+    .eq('ativo', true)
     .single()
 
   if (!aulaRaw) notFound()
@@ -35,6 +36,7 @@ export default async function AulaPage({
     .from('aulas')
     .select('id, titulo, ordem')
     .eq('modulo_id', id)
+    .eq('ativo', true)
     .order('ordem')
 
   const todasAulas =
