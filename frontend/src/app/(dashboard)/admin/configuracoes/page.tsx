@@ -1,9 +1,14 @@
 import { Settings, Database, Shield, Bell, Globe } from 'lucide-react'
 import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { getAppVersion, getMigrationsCount } from '@/lib/platform-info'
 
 export default async function AdminConfiguracoesPage() {
   await requireRole('administrador')
+
+  // Dados reais (em vez dos placeholders hardcoded de antes)
+  const version = getAppVersion()
+  const migrationsCount = await getMigrationsCount()
 
   const sections = [
     {
@@ -13,7 +18,10 @@ export default async function AdminConfiguracoesPage() {
       items: [
         { label: 'Motor', value: 'PostgreSQL (Supabase)' },
         { label: 'RLS', value: 'Ativo em todas as tabelas' },
-        { label: 'Migrações', value: '3 aplicadas' },
+        {
+          label: 'Migrações',
+          value: migrationsCount != null ? `${migrationsCount} no repositório` : '—',
+        },
       ],
     },
     {
@@ -23,7 +31,7 @@ export default async function AdminConfiguracoesPage() {
       items: [
         { label: 'Provedor', value: 'Supabase Auth' },
         { label: 'Email/Password', value: 'Ativo' },
-        { label: 'Confirmação de email', value: 'Opcional' },
+        { label: '2FA (professor/admin)', value: 'OTP por email' },
       ],
     },
     {
@@ -32,7 +40,6 @@ export default async function AdminConfiguracoesPage() {
       description: 'Sistema de notificações',
       items: [
         { label: 'Notificações in-app', value: 'Disponíveis' },
-        { label: 'Email de notificações', value: 'Em desenvolvimento' },
       ],
     },
     {
@@ -40,7 +47,7 @@ export default async function AdminConfiguracoesPage() {
       title: 'Plataforma',
       description: 'Informações gerais',
       items: [
-        { label: 'Versão', value: '1.0.0' },
+        { label: 'Versão', value: version },
         { label: 'Framework', value: 'Next.js 16 + TypeScript' },
         { label: 'Idioma', value: 'Português (PT)' },
       ],
@@ -85,7 +92,9 @@ export default async function AdminConfiguracoesPage() {
           <div>
             <p className="text-sm font-semibold text-amber-900">Configurações avançadas</p>
             <p className="text-sm text-amber-700 mt-0.5">
-              Funcionalidades como gestão de chaves API, SMTP personalizado e webhooks estão em desenvolvimento.
+              Funcionalidades como gestão de chaves API, SMTP personalizado e
+              webhooks ainda não estão expostas nesta UI — geríveis directamente
+              no Studio do Supabase.
             </p>
           </div>
         </CardContent>
