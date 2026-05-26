@@ -44,6 +44,7 @@ export default async function ModuloDetailPage({
     .from('aulas')
     .select('id, titulo, ordem, duracao_minutos')
     .eq('modulo_id', id)
+    .eq('ativo', true)
     .order('ordem')
 
   const aulas = (aulasRaw as {
