@@ -2,6 +2,8 @@ import { Users, GraduationCap, BookUser, ShieldCheck } from 'lucide-react'
 import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { type PapelUtilizador } from '@/lib/types/database.types'
+import { UtilizadorForm } from './utilizador-form'
+import { DesativarUtilizadorButton } from './desativar-utilizador-button'
 
 const papelLabels: Record<PapelUtilizador, string> = {
   aluno: 'Aluno',
@@ -21,25 +23,37 @@ const papelIcons: Record<PapelUtilizador, React.ComponentType<{ className?: stri
   administrador: ShieldCheck,
 }
 
+interface UtilizadorRow {
+  id: string
+  nome_completo: string
+  email: string
+  papel: PapelUtilizador
+  pontos_total: number
+  ativo: boolean
+  criado_em: string
+  escola_id: string | null
+  numero_aluno: string | null
+  escolas: { nome: string } | null
+}
+
 export default async function AdminUtilizadoresPage() {
-  const { supabase } = await requireRole('administrador')
+  const { user, supabase } = await requireRole('administrador')
 
   const { data: utilizadoresRaw } = await supabase
     .from('perfis')
-    .select('id, nome_completo, email, papel, pontos_total, ativo, criado_em, escolas(nome)')
+    .select('id, nome_completo, email, papel, pontos_total, ativo, criado_em, escola_id, numero_aluno, escolas(nome)')
     .order('criado_em', { ascending: false })
 
-  const utilizadores =
-    (utilizadoresRaw as {
-      id: string
-      nome_completo: string
-      email: string
-      papel: PapelUtilizador
-      pontos_total: number
-      ativo: boolean
-      criado_em: string
-      escolas: { nome: string } | null
-    }[]) ?? []
+  const utilizadores = (utilizadoresRaw as UtilizadorRow[] | null) ?? []
+
+  // Lista de escolas ativas para o select do form
+  const { data: escolasRaw } = await supabase
+    .from('escolas')
+    .select('id, nome')
+    .eq('ativo', true)
+    .order('nome')
+
+  const escolas = (escolasRaw as { id: string; nome: string }[] | null) ?? []
 
   const counts = utilizadores.reduce<Record<string, number>>(
     (acc, u) => { acc[u.papel] = (acc[u.papel] ?? 0) + 1; return acc },
@@ -48,11 +62,14 @@ export default async function AdminUtilizadoresPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Utilizadores</h1>
-        <p className="text-slate-500 mt-1">
-          {utilizadores.length} utilizador{utilizadores.length !== 1 ? 'es' : ''} registado{utilizadores.length !== 1 ? 's' : ''}
-        </p>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Utilizadores</h1>
+          <p className="text-slate-500 mt-1">
+            {utilizadores.length} utilizador{utilizadores.length !== 1 ? 'es' : ''} registado{utilizadores.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+        <UtilizadorForm escolas={escolas} />
       </div>
 
       {/* Summary */}
@@ -101,6 +118,9 @@ export default async function AdminUtilizadoresPage() {
                         {!u.ativo && (
                           <span className="text-xs bg-red-100 text-red-600 rounded px-1.5 py-0.5">Inativo</span>
                         )}
+                        {u.id === user.id && (
+                          <span className="text-xs bg-slate-100 text-slate-500 rounded px-1.5 py-0.5">Tu</span>
+                        )}
                       </p>
                       <p className="text-xs text-slate-400 truncate">
                         {u.email}
@@ -115,6 +135,32 @@ export default async function AdminUtilizadoresPage() {
                         <PapelIcon className="h-3 w-3" />
                         {papelLabels[u.papel]}
                       </span>
+                      <div className="flex items-center gap-0.5">
+                        {/* O próprio admin não pode editar nem desativar a
+                            sua própria conta — defesa contra mudar papel
+                            por engano e ficar sem admin no sistema. */}
+                        {u.id !== user.id && (
+                          <>
+                            <UtilizadorForm
+                              utilizador={{
+                                id:            u.id,
+                                email:         u.email,
+                                nome_completo: u.nome_completo,
+                                papel:         u.papel,
+                                escola_id:     u.escola_id,
+                                numero_aluno:  u.numero_aluno,
+                              }}
+                              escolas={escolas}
+                            />
+                            <DesativarUtilizadorButton
+                              utilizadorId={u.id}
+                              nomeUtilizador={u.nome_completo}
+                              ativo={u.ativo}
+                              isCurrentUser={false}
+                            />
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )
