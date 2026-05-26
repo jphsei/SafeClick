@@ -2,17 +2,24 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, ChevronDown, LogOut, User, Menu } from 'lucide-react'
+import { ChevronDown, LogOut, User, Menu } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { NotificationsPopover, type NotificacaoItem } from './notifications-popover'
 
 interface HeaderProps {
   nomeUtilizador: string
   email: string
   notificacoesNaoLidas?: number
+  notificacoes?: NotificacaoItem[]
 }
 
-export function Header({ nomeUtilizador, email, notificacoesNaoLidas = 0 }: HeaderProps) {
+export function Header({
+  nomeUtilizador,
+  email,
+  notificacoesNaoLidas = 0,
+  notificacoes = [],
+}: HeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
@@ -51,17 +58,10 @@ export function Header({ nomeUtilizador, email, notificacoesNaoLidas = 0 }: Head
       {/* Right side */}
       <div className="flex items-center gap-2">
         {/* Notifications */}
-        <button
-          className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-          aria-label="Notificações"
-        >
-          <Bell className="h-5 w-5" />
-          {notificacoesNaoLidas > 0 && (
-            <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
-              {notificacoesNaoLidas > 9 ? '9+' : notificacoesNaoLidas}
-            </span>
-          )}
-        </button>
+        <NotificationsPopover
+          notificacoes={notificacoes}
+          naoLidas={notificacoesNaoLidas}
+        />
 
         {/* User menu */}
         <div className="relative">
