@@ -1,7 +1,8 @@
-import { User, Mail, School, Hash, Star, BookOpen, Award, Calendar } from 'lucide-react'
+import { Mail, School, Hash, Star, BookOpen, Award, Calendar } from 'lucide-react'
 import { requireProfile } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { type PapelUtilizador } from '@/lib/types/database.types'
+import { EditPerfilForm } from './edit-perfil-form'
 
 const papelLabels: Record<PapelUtilizador, string> = {
   aluno: 'Aluno',
@@ -72,9 +73,19 @@ export default async function PerfilPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">O meu perfil</h1>
-        <p className="text-slate-500 mt-1">As tuas informações e estatísticas.</p>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">O meu perfil</h1>
+          <p className="text-slate-500 mt-1">As tuas informações e estatísticas.</p>
+        </div>
+        <EditPerfilForm
+          perfil={{
+            nome_completo: perfil.nome_completo,
+            email:         perfil.email,
+            papel:         perfil.papel,
+            numero_aluno:  perfil.numero_aluno,
+          }}
+        />
       </div>
 
       {/* Profile card */}
