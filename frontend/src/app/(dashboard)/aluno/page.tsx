@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { type NivelDificuldade } from '@/lib/types/database.types'
+import { EntrarTurmaForm } from './entrar-turma-form'
 
 const nivelLabel: Record<NivelDificuldade, string> = {
   basico: 'Básico',
@@ -24,6 +25,17 @@ export default async function AlunoDashboardPage() {
 
   const primeiroNome = perfil.nome_completo.split(' ')[0]
   const pontosTotal = extra?.pontos_total ?? 0
+
+  // Verificar se o aluno já está inscrito em alguma turma. Decide se o
+  // widget "Entrar em turma" aparece em destaque (sem turmas) ou
+  // discretamente (já tem turma).
+  const { count: turmaCount } = await supabase
+    .from('turma_alunos')
+    .select('id', { count: 'exact', head: true })
+    .eq('aluno_id', user.id)
+    .eq('ativo', true)
+
+  const temTurma = (turmaCount ?? 0) > 0
 
   const { data: progressoDataRaw } = await supabase
     .from('progresso_modulo')
@@ -77,6 +89,9 @@ export default async function AlunoDashboardPage() {
           Bem-vindo de volta à tua área de aprendizagem.
         </p>
       </div>
+
+      {/* Entrar em turma — em destaque se ainda não tem turma */}
+      <EntrarTurmaForm temTurma={temTurma} />
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">

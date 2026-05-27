@@ -7,8 +7,11 @@ import { generateOtpCode, hashOtpCode, sendOtpEmail } from '@/lib/auth/otp-email
 import { type Database } from '@/lib/types/database.types'
 import { type PapelUtilizador } from '@/lib/types/database.types'
 
-// Papéis que exigem verificação OTP por email após a password
-const OTP_REQUIRED_ROLES: PapelUtilizador[] = ['professor', 'administrador']
+// Papéis que exigem verificação OTP por email após a password.
+// Decisão: 2FA universal — todos os utilizadores (incluindo alunos)
+// confirmam o login com código enviado por email. Mais lento mas mais
+// uniforme; protege também os alunos em ambientes escolares partilhados.
+const OTP_REQUIRED_ROLES: PapelUtilizador[] = ['aluno', 'professor', 'administrador']
 
 /** Extrai o IP real do cliente a partir de headers de proxy comuns. */
 function getClientIp(req: NextRequest): string {
