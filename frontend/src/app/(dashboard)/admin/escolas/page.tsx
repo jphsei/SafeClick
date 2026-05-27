@@ -43,8 +43,9 @@ export default async function AdminEscolasPage() {
         <Card>
           <CardContent className="py-16 text-center">
             <School className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 mb-4">Nenhuma escola registada.</p>
-            <EscolaForm />
+            <p className="text-slate-500">
+              Nenhuma escola registada. Cria a primeira no botão acima.
+            </p>
           </CardContent>
         </Card>
       ) : (
