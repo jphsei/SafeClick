@@ -1,4 +1,5 @@
-import { School, MapPin, Phone, Mail } from 'lucide-react'
+import Link from 'next/link'
+import { School, MapPin, Phone, Mail, ArrowRight } from 'lucide-react'
 import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent } from '@/components/ui/card'
 import { EscolaForm } from './escola-form'
@@ -93,6 +94,13 @@ export default async function AdminEscolasPage() {
                     </div>
                   </div>
                   <div className="flex-shrink-0 flex items-center gap-0.5">
+                    <Link
+                      href={`/admin/escolas/${escola.id}`}
+                      title="Ver turmas e alunos"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                    >
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
                     <EscolaForm escola={escola} />
                     <DesativarEscolaButton
                       escolaId={escola.id}
