@@ -31,7 +31,9 @@ export interface PasswordChecks {
 export function getPasswordChecks(pw: string): PasswordChecks {
   return {
     length:  { ok: pw.length >= MIN_PASSWORD_LENGTH, label: `Mínimo ${MIN_PASSWORD_LENGTH} caracteres` },
-    letter:  { ok: /[a-zA-Z]/.test(pw),              label: 'Pelo menos uma letra' },
+    // `\p{L}` (Unicode letter) em vez de `[a-zA-Z]` para aceitar
+    // letras acentuadas pt-PT (á, é, í, ó, ú, ç, ã, õ, ...).
+    letter:  { ok: /\p{L}/u.test(pw),                label: 'Pelo menos uma letra' },
     number:  { ok: /[0-9]/.test(pw),                 label: 'Pelo menos um número' },
     special: { ok: SPECIAL_CHAR_RE.test(pw),         label: 'Pelo menos um carácter especial (!@#$…)' },
   }
@@ -73,7 +75,7 @@ export function validatePassword(password: string): PasswordValidationResult {
   if (password.length < MIN_PASSWORD_LENGTH) {
     errors.push(`A palavra-passe deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`)
   }
-  if (!/[a-zA-Z]/.test(password)) {
+  if (!/\p{L}/u.test(password)) {
     errors.push('A palavra-passe deve conter pelo menos uma letra.')
   }
   if (!/[0-9]/.test(password)) {
