@@ -21,9 +21,11 @@ export default function RecuperarPalavraPassePage() {
     setLoading(true)
     setError(null)
 
+    // O `type=recovery` é lido pelo /auth/callback para set o cookie
+    // sentinel que força o user a ir para /redefinir-palavra-passe.
     const redirectTo =
       typeof window !== 'undefined'
-        ? `${window.location.origin}/auth/callback?next=/redefinir-palavra-passe`
+        ? `${window.location.origin}/auth/callback?next=/redefinir-palavra-passe&type=recovery`
         : '/redefinir-palavra-passe'
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
