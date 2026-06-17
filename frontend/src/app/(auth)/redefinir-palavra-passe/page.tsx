@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordStrength } from '@/components/auth/password-strength'
 import { validatePassword, MIN_PASSWORD_LENGTH } from '@/lib/auth/password'
+import { clearPasswordResetCookie } from './actions'
 
 export default function RedefinirPalavraPassePage() {
   const router = useRouter()
@@ -54,6 +55,10 @@ export default function RedefinirPalavraPassePage() {
     // nova password funciona e invalida quaisquer sessões paralelas
     // (ex: se a conta tiver sido comprometida).
     await supabase.auth.signOut()
+
+    // Limpar o cookie sentinel que estava a forçar redirect para esta
+    // página (não esquecer, senão o middleware fica em loop redirect).
+    await clearPasswordResetCookie()
 
     setLoading(false)
     setDone(true)
