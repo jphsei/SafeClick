@@ -15,18 +15,9 @@ export default async function RecursosPage() {
   const recursos = (recursosRaw as RecursoRow[] | null) ?? []
 
   // Lista de módulos para o select de filtro no RecursosClient.
-  const { data: modulosRaw } = await supabase
-    .from('modulos')
-    .select('id, titulo')
-    .order('titulo')
+  const { data: modulosRaw } = await supabase.from('modulos').select('id, titulo').order('titulo')
 
   const modulos = (modulosRaw as { id: string; titulo: string }[] | null) ?? []
 
-  return (
-    <RecursosClient
-      recursos={recursos}
-      modulos={modulos}
-      professorId={user.id}
-    />
-  )
+  return <RecursosClient recursos={recursos} modulos={modulos} professorId={user.id} />
 }

@@ -15,10 +15,10 @@ export function EntrarTurmaForm({ temTurma }: Props) {
   const router = useRouter()
   const supabase = createClient()
 
-  const [codigo, setCodigo]       = useState('')
-  const [loading, setLoading]     = useState(false)
-  const [erro, setErro]           = useState<string | null>(null)
-  const [sucesso, setSucesso]     = useState<string | null>(null)
+  const [codigo, setCodigo] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
+  const [sucesso, setSucesso] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -63,9 +63,13 @@ export function EntrarTurmaForm({ temTurma }: Props) {
   }
 
   return (
-    <div className={`rounded-xl border p-4 ${temTurma ? 'border-slate-200 bg-white' : 'border-blue-200 bg-blue-50'}`}>
+    <div
+      className={`rounded-xl border p-4 ${temTurma ? 'border-slate-200 bg-white' : 'border-blue-200 bg-blue-50'}`}
+    >
       <div className="flex items-start gap-3 mb-3">
-        <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${temTurma ? 'bg-slate-100' : 'bg-blue-100'}`}>
+        <div
+          className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${temTurma ? 'bg-slate-100' : 'bg-blue-100'}`}
+        >
           <Users className={`h-4 w-4 ${temTurma ? 'text-slate-600' : 'text-blue-600'}`} />
         </div>
         <div>
@@ -81,7 +85,10 @@ export function EntrarTurmaForm({ temTurma }: Props) {
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
           value={codigo}
-          onChange={(e) => { setCodigo(e.target.value.toUpperCase()); setErro(null) }}
+          onChange={(e) => {
+            setCodigo(e.target.value.toUpperCase())
+            setErro(null)
+          }}
           placeholder="Código da turma (ex: AB3X9K)"
           maxLength={8}
           className="font-mono tracking-widest uppercase"
@@ -91,9 +98,7 @@ export function EntrarTurmaForm({ temTurma }: Props) {
         </Button>
       </form>
 
-      {erro && (
-        <p className="mt-2 text-xs text-red-600">{erro}</p>
-      )}
+      {erro && <p className="mt-2 text-xs text-red-600">{erro}</p>}
     </div>
   )
 }

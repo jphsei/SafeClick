@@ -42,8 +42,9 @@ export default async function SimulacoesPage() {
     .eq('aluno_id', user.id)
 
   const tentativasMap = new Map(
-    (tentativasRaw as { simulacao_id: string; estado: string; pontos_ganhos: number }[] ?? [])
-      .map((t) => [t.simulacao_id, t])
+    (
+      (tentativasRaw as { simulacao_id: string; estado: string; pontos_ganhos: number }[]) ?? []
+    ).map((t) => [t.simulacao_id, t]),
   )
 
   const detetadas = [...tentativasMap.values()].filter((t) => t.estado === 'reportou').length
@@ -118,10 +119,10 @@ export default async function SimulacoesPage() {
                         !feita
                           ? 'bg-orange-100'
                           : tentativa?.estado === 'reportou'
-                          ? 'bg-green-100'
-                          : tentativa?.estado === 'clicou'
-                          ? 'bg-red-100'
-                          : 'bg-yellow-100'
+                            ? 'bg-green-100'
+                            : tentativa?.estado === 'clicou'
+                              ? 'bg-red-100'
+                              : 'bg-yellow-100'
                       }`}
                     >
                       <ShieldAlert
@@ -129,10 +130,10 @@ export default async function SimulacoesPage() {
                           !feita
                             ? 'text-orange-600'
                             : tentativa?.estado === 'reportou'
-                            ? 'text-green-600'
-                            : tentativa?.estado === 'clicou'
-                            ? 'text-red-600'
-                            : 'text-yellow-600'
+                              ? 'text-green-600'
+                              : tentativa?.estado === 'clicou'
+                                ? 'text-red-600'
+                                : 'text-yellow-600'
                         }`}
                       />
                     </div>
@@ -140,9 +141,7 @@ export default async function SimulacoesPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-slate-900">{sim.titulo}</p>
                       {sim.descricao && (
-                        <p className="text-sm text-slate-500 truncate mt-0.5">
-                          {sim.descricao}
-                        </p>
+                        <p className="text-sm text-slate-500 truncate mt-0.5">{sim.descricao}</p>
                       )}
                       <div className="flex items-center gap-3 mt-1 flex-wrap">
                         <Badge variant={sim.dificuldade}>{nivelLabels[sim.dificuldade]}</Badge>

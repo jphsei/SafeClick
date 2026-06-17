@@ -14,12 +14,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
  * atomic (uses `FOR UPDATE`) so concurrent attempts race safely.
  */
 
-const MAX_ATTEMPTS    = 5
-const WINDOW_SECONDS  = 5 * 60      // 5 minute sliding window (era 60s,
-                                    // demasiado curto: clicar nos forms
-                                    // já demora isso, e na prática nunca
-                                    // se chegava ao lockout em uso normal)
-const LOCKOUT_SECONDS = 15 * 60     // 15 minute lockout
+const MAX_ATTEMPTS = 5
+const WINDOW_SECONDS = 5 * 60 // 5 minute sliding window (era 60s,
+// demasiado curto: clicar nos forms
+// já demora isso, e na prática nunca
+// se chegava ao lockout em uso normal)
+const LOCKOUT_SECONDS = 15 * 60 // 15 minute lockout
 
 export interface RateLimitResult {
   allowed: boolean
@@ -43,9 +43,9 @@ export async function checkRateLimit(key: string): Promise<RateLimitResult> {
   try {
     const admin = createAdminClient()
     const { data, error } = await admin.rpc('fn_check_rate_limit', {
-      p_key:             key,
-      p_max_attempts:    MAX_ATTEMPTS,
-      p_window_seconds:  WINDOW_SECONDS,
+      p_key: key,
+      p_max_attempts: MAX_ATTEMPTS,
+      p_window_seconds: WINDOW_SECONDS,
       p_lockout_seconds: LOCKOUT_SECONDS,
     })
 
@@ -63,8 +63,8 @@ export async function checkRateLimit(key: string): Promise<RateLimitResult> {
     }
 
     return {
-      allowed:           res.allowed,
-      remaining:         res.attempts_left,
+      allowed: res.allowed,
+      remaining: res.attempts_left,
       retryAfterSeconds: res.allowed ? undefined : res.retry_after_seconds,
     }
   } catch (err) {

@@ -99,9 +99,7 @@ export default async function BadgesPage() {
                             Ganho em {new Date(ganhoEm!).toLocaleDateString('pt-PT')}
                           </span>
                         ) : (
-                          <span className="text-slate-400">
-                            +{badge.pontos_bonus} pontos bónus
-                          </span>
+                          <span className="text-slate-400">+{badge.pontos_bonus} pontos bónus</span>
                         )}
                       </p>
                     </div>

@@ -24,16 +24,10 @@ export const metadata: Metadata = {
   keywords: ['cibersegurança', 'segurança online', 'escolas', 'Portugal', 'e-learning'],
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="antialiased bg-slate-50 text-slate-900 font-sans">
-        {children}
-      </body>
+      <body className="antialiased bg-slate-50 text-slate-900 font-sans">{children}</body>
     </html>
   )
 }

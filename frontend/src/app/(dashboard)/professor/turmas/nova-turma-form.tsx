@@ -35,7 +35,9 @@ export function NovaTurmaForm({ professorId, escolaId }: NovaTurmaFormProps) {
     // Verificar se o browser está autenticado antes de tentar o insert
     // (o middleware costuma garantir isto, mas as sessões podem expirar
     // entre o carregamento da page e a submissão do form).
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser()
     if (!currentUser) {
       setLoading(false)
       setError('Sessão expirada. Volta a fazer login.')
@@ -82,7 +84,10 @@ export function NovaTurmaForm({ professorId, escolaId }: NovaTurmaFormProps) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-slate-900">Nova turma</h3>
         <button
-          onClick={() => { setOpen(false); setError(null) }}
+          onClick={() => {
+            setOpen(false)
+            setError(null)
+          }}
           className="text-slate-400 hover:text-slate-600 transition-colors"
         >
           <X className="h-5 w-5" />
@@ -135,7 +140,10 @@ export function NovaTurmaForm({ professorId, escolaId }: NovaTurmaFormProps) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => { setOpen(false); setError(null) }}
+            onClick={() => {
+              setOpen(false)
+              setError(null)
+            }}
           >
             Cancelar
           </Button>

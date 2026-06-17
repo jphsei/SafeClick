@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import { BarChart3, Users, TrendingUp, ShieldAlert } from 'lucide-react'
+import { Users, TrendingUp, ShieldAlert } from 'lucide-react'
 import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
@@ -14,7 +14,7 @@ export default async function RelatoriosPage() {
     .eq('professor_id', user.id)
     .eq('ativo', true)
 
-  const turmaIds = (turmasRaw as { id: string; nome: string }[] ?? []).map((t) => t.id)
+  const turmaIds = ((turmasRaw as { id: string; nome: string }[]) ?? []).map((t) => t.id)
 
   // Fetch turma stats
   const { data: statsRaw } = await supabase
@@ -38,8 +38,11 @@ export default async function RelatoriosPage() {
     .in('turma_id', turmaIds)
     .eq('ativo', true)
 
-  const alunoIds = [...new Set((alunosRaw as { aluno_id: string; turma_id: string }[] ?? [])
-    .map((a) => a.aluno_id))]
+  const alunoIds = [
+    ...new Set(
+      ((alunosRaw as { aluno_id: string; turma_id: string }[]) ?? []).map((a) => a.aluno_id),
+    ),
+  ]
 
   // Fetch simulation stats for those students
   const { data: simStatsRaw } = await supabase
@@ -205,8 +208,8 @@ export default async function RelatoriosPage() {
                         s.taxa_deteccao >= 70
                           ? 'text-green-600'
                           : s.taxa_deteccao >= 40
-                          ? 'text-yellow-600'
-                          : 'text-red-600'
+                            ? 'text-yellow-600'
+                            : 'text-red-600'
                       }`}
                     >
                       {Math.round(s.taxa_deteccao)}%

@@ -6,18 +6,14 @@ import { sanitizeEmailHtml } from '@/lib/sanitize'
 import { SimulacaoClient } from './simulacao-client'
 import { type EstadoSimulacao } from '@/lib/types/database.types'
 
-export default async function SimulacaoPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function SimulacaoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const { user, supabase } = await requireUser()
 
   const { data: simRaw } = await supabase
     .from('simulacoes_phishing')
     .select(
-      'id, titulo, descricao, assunto_email, corpo_email, remetente_falso, url_falso, pistas, dificuldade, pontos_sucesso'
+      'id, titulo, descricao, assunto_email, corpo_email, remetente_falso, url_falso, pistas, dificuldade, pontos_sucesso',
     )
     .eq('id', id)
     .eq('ativo', true)
@@ -65,9 +61,7 @@ export default async function SimulacaoPage({
 
       <div>
         <h1 className="text-2xl font-bold text-slate-900">{sim.titulo}</h1>
-        {sim.descricao && (
-          <p className="text-slate-500 mt-1">{sim.descricao}</p>
-        )}
+        {sim.descricao && <p className="text-slate-500 mt-1">{sim.descricao}</p>}
       </div>
 
       <SimulacaoClient

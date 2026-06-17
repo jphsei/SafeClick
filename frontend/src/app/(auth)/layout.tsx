@@ -1,11 +1,7 @@
 import Link from 'next/link'
 import { ShieldCheck } from 'lucide-react'
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
       {/* Background decoration */}
@@ -29,9 +25,7 @@ export default function AuthLayout({
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl bg-white shadow-2xl p-8">
-          {children}
-        </div>
+        <div className="rounded-2xl bg-white shadow-2xl p-8">{children}</div>
 
         {/* Footer */}
         <p className="text-center text-xs text-slate-500 mt-6">

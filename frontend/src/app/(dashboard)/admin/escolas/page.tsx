@@ -34,7 +34,8 @@ export default async function AdminEscolasPage() {
           <h1 className="text-2xl font-bold text-slate-900">Escolas</h1>
           <p className="text-slate-500 mt-1">
             {ativas} escola{ativas !== 1 ? 's' : ''} ativa{ativas !== 1 ? 's' : ''}
-            {escolas.length > ativas && ` · ${escolas.length - ativas} inativa${escolas.length - ativas !== 1 ? 's' : ''}`}
+            {escolas.length > ativas &&
+              ` · ${escolas.length - ativas} inativa${escolas.length - ativas !== 1 ? 's' : ''}`}
           </p>
         </div>
         <EscolaForm />

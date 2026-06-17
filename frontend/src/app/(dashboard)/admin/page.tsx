@@ -18,27 +18,73 @@ export default async function AdminDashboardPage() {
     supabase.from('escolas').select('*', { count: 'exact', head: true }).eq('ativo', true),
     supabase.from('perfis').select('*', { count: 'exact', head: true }).eq('ativo', true),
     supabase.from('modulos').select('*', { count: 'exact', head: true }).eq('estado', 'publicado'),
-    supabase.from('simulacoes_phishing').select('*', { count: 'exact', head: true }).eq('ativo', true),
+    supabase
+      .from('simulacoes_phishing')
+      .select('*', { count: 'exact', head: true })
+      .eq('ativo', true),
     checkDatabase(supabase),
     checkAuth(supabase),
   ])
 
   const healthChecks: Array<{ label: string; result: HealthResult }> = [
-    { label: 'Base de dados',  result: dbHealth },
-    { label: 'Autenticação',   result: authHealth },
+    { label: 'Base de dados', result: dbHealth },
+    { label: 'Autenticação', result: authHealth },
   ]
 
   const stats = [
-    { label: 'Escolas registadas', value: totalEscolas ?? 0, icon: School, color: 'bg-blue-100', iconColor: 'text-blue-600', href: '/admin/escolas' },
-    { label: 'Utilizadores ativos', value: totalUtilizadores ?? 0, icon: Users, color: 'bg-green-100', iconColor: 'text-green-600', href: '/admin/utilizadores' },
-    { label: 'Módulos publicados', value: totalModulos ?? 0, icon: BookOpen, color: 'bg-purple-100', iconColor: 'text-purple-600', href: '/admin/modulos' },
-    { label: 'Simulações ativas', value: totalSimulacoes ?? 0, icon: Shield, color: 'bg-cyan-100', iconColor: 'text-cyan-600', href: null },
+    {
+      label: 'Escolas registadas',
+      value: totalEscolas ?? 0,
+      icon: School,
+      color: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      href: '/admin/escolas',
+    },
+    {
+      label: 'Utilizadores ativos',
+      value: totalUtilizadores ?? 0,
+      icon: Users,
+      color: 'bg-green-100',
+      iconColor: 'text-green-600',
+      href: '/admin/utilizadores',
+    },
+    {
+      label: 'Módulos publicados',
+      value: totalModulos ?? 0,
+      icon: BookOpen,
+      color: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+      href: '/admin/modulos',
+    },
+    {
+      label: 'Simulações ativas',
+      value: totalSimulacoes ?? 0,
+      icon: Shield,
+      color: 'bg-cyan-100',
+      iconColor: 'text-cyan-600',
+      href: null,
+    },
   ]
 
   const quickActions = [
-    { label: 'Gerir escolas', description: 'Adicionar e editar escolas', href: '/admin/escolas', icon: School },
-    { label: 'Gerir utilizadores', description: 'Utilizadores e permissões', href: '/admin/utilizadores', icon: Users },
-    { label: 'Gerir módulos', description: 'Ver e gerir módulos publicados', href: '/admin/modulos', icon: BookOpen },
+    {
+      label: 'Gerir escolas',
+      description: 'Adicionar e editar escolas',
+      href: '/admin/escolas',
+      icon: School,
+    },
+    {
+      label: 'Gerir utilizadores',
+      description: 'Utilizadores e permissões',
+      href: '/admin/utilizadores',
+      icon: Users,
+    },
+    {
+      label: 'Gerir módulos',
+      description: 'Ver e gerir módulos publicados',
+      href: '/admin/modulos',
+      icon: BookOpen,
+    },
   ]
 
   return (
@@ -55,7 +101,9 @@ export default async function AdminDashboardPage() {
           const card = (
             <Card className={stat.href ? 'hover:shadow-sm transition-shadow cursor-pointer' : ''}>
               <CardContent className="flex items-center gap-4 pt-6">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.color}`}>
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.color}`}
+                >
                   <Icon className={`h-6 w-6 ${stat.iconColor}`} />
                 </div>
                 <div>
@@ -66,7 +114,9 @@ export default async function AdminDashboardPage() {
             </Card>
           )
           return stat.href ? (
-            <Link key={stat.label} href={stat.href}>{card}</Link>
+            <Link key={stat.label} href={stat.href}>
+              {card}
+            </Link>
           ) : (
             <div key={stat.label}>{card}</div>
           )
@@ -91,8 +141,12 @@ export default async function AdminDashboardPage() {
                 title={result.detail}
               >
                 <span className="text-sm text-slate-700">{label}</span>
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${result.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${result.ok ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${result.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${result.ok ? 'bg-green-500' : 'bg-red-500'}`}
+                  />
                   {result.label}
                 </span>
               </div>

@@ -22,9 +22,7 @@ export interface HealthResult {
  * Verifica que a base de dados responde a queries.
  * Faz um count rápido a uma tabela pequena (`escolas`) que serve de "ping".
  */
-export async function checkDatabase(
-  supabase: SupabaseClient<Database>,
-): Promise<HealthResult> {
+export async function checkDatabase(supabase: SupabaseClient<Database>): Promise<HealthResult> {
   try {
     const { error } = await supabase
       .from('escolas')
@@ -46,9 +44,7 @@ export async function checkDatabase(
  * Como já passamos pelo `requireRole` antes, temos uma sessão activa —
  * usamos `getUser()` para confirmar que o token continua válido.
  */
-export async function checkAuth(
-  supabase: SupabaseClient<Database>,
-): Promise<HealthResult> {
+export async function checkAuth(supabase: SupabaseClient<Database>): Promise<HealthResult> {
   try {
     const { data, error } = await supabase.auth.getUser()
     if (error) {

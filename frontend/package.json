@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\" \"tests/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\" \"tests/**/*.{ts,tsx}\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:types": "npx supabase gen types typescript --local > src/lib/types/database.generated.ts"
@@ -41,8 +43,10 @@
     "autoprefixer": "^10.5.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "eslint-config-prettier": "^9.1.0",
     "happy-dom": "^15.11.7",
     "postcss": "^8.5.9",
+    "prettier": "^3.4.2",
     "tailwindcss": "^4.2.2",
     "typescript": "^5",
     "vitest": "^2.1.8"

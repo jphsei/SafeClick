@@ -4,11 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { requireUser } from '@/lib/auth/require-role'
 import { QuizClient } from './quiz-client'
 
-export default async function QuizPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function QuizPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const { user, supabase } = await requireUser()
 
@@ -40,17 +36,20 @@ export default async function QuizPage({
     .eq('quiz_id', id)
     .order('ordem')
 
-  const perguntas = (perguntasRaw as {
-    id: string
-    enunciado: string
-    tipo: string
-    pontos: number
-    ordem: number
-    opcoes_resposta: { id: string; texto: string; ordem: number }[]
-  }[])?.map((p) => ({
-    ...p,
-    opcoes: [...p.opcoes_resposta].sort((a, b) => a.ordem - b.ordem),
-  })) ?? []
+  const perguntas =
+    (
+      perguntasRaw as {
+        id: string
+        enunciado: string
+        tipo: string
+        pontos: number
+        ordem: number
+        opcoes_resposta: { id: string; texto: string; ordem: number }[]
+      }[]
+    )?.map((p) => ({
+      ...p,
+      opcoes: [...p.opcoes_resposta].sort((a, b) => a.ordem - b.ordem),
+    })) ?? []
 
   // Fetch all completed attempts to count them and get the last one
   const { data: tentativasRaw } = await supabase
@@ -61,7 +60,8 @@ export default async function QuizPage({
     .eq('concluido', true)
     .order('concluido_em', { ascending: false })
 
-  const tentativas = (tentativasRaw as { nota: number | null; pontos_ganhos: number; concluido_em: string }[]) ?? []
+  const tentativas =
+    (tentativasRaw as { nota: number | null; pontos_ganhos: number; concluido_em: string }[]) ?? []
   const tentativaAnterior = tentativas[0] ?? null
   const tentativasFeitas = tentativas.length
   const tentativasRestantes = Math.max(0, quiz.tentativas_max - tentativasFeitas)

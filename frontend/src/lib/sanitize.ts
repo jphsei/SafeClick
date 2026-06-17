@@ -23,14 +23,36 @@ export function sanitizeEmailHtml(html: string | null | undefined): string {
     // para simular phishing realista). Listas, tabelas e divs/spans
     // são úteis para emails marketing-style.
     ALLOWED_TAGS: [
-      'p', 'br', 'hr',
-      'a', 'img',
-      'strong', 'b', 'em', 'i', 'u',
-      'ul', 'ol', 'li',
-      'div', 'span',
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'table', 'thead', 'tbody', 'tr', 'td', 'th',
-      'blockquote', 'code', 'pre',
+      'p',
+      'br',
+      'hr',
+      'a',
+      'img',
+      'strong',
+      'b',
+      'em',
+      'i',
+      'u',
+      'ul',
+      'ol',
+      'li',
+      'div',
+      'span',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'td',
+      'th',
+      'blockquote',
+      'code',
+      'pre',
     ],
 
     // ── Atributos permitidos ─────────────────────────────────
@@ -38,10 +60,15 @@ export function sanitizeEmailHtml(html: string | null | undefined): string {
     // `target` e `rel` permitem indicar abertura noutra aba mas
     // são reforçados a seguir pelo hook.
     ALLOWED_ATTR: [
-      'href', 'src', 'alt', 'title',
+      'href',
+      'src',
+      'alt',
+      'title',
       'style',
-      'target', 'rel',
-      'width', 'height',
+      'target',
+      'rel',
+      'width',
+      'height',
       'class',
     ],
 
@@ -56,9 +83,9 @@ export function sanitizeEmailHtml(html: string | null | undefined): string {
     // automaticamente. FORBID_TAGS aqui é defesa em profundidade (zero
     // confiança que a lista acima esteja completa). Importante: a tag
     // `<style>` é banida, mas o ATRIBUTO `style="..."` continua permitido.
-    KEEP_CONTENT: true,         // se uma tag for removida, mantém o texto
-    ALLOW_DATA_ATTR: false,     // sem `data-*`
-    ALLOW_ARIA_ATTR: false,     // sem `aria-*` (não precisamos)
+    KEEP_CONTENT: true, // se uma tag for removida, mantém o texto
+    ALLOW_DATA_ATTR: false, // sem `data-*`
+    ALLOW_ARIA_ATTR: false, // sem `aria-*` (não precisamos)
     FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
     FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur', 'formaction'],
   })

@@ -19,7 +19,9 @@ export default async function ProfessorDashboardPage() {
     .eq('ativo', true)
     .order('criado_em', { ascending: false })
 
-  const turmas = turmasRaw as { id: string; nome: string; descricao: string | null; ano_letivo: string | null }[] | null
+  const turmas = turmasRaw as
+    | { id: string; nome: string; descricao: string | null; ano_letivo: string | null }[]
+    | null
 
   const totalTurmas = turmas?.length ?? 0
 
@@ -35,11 +37,13 @@ export default async function ProfessorDashboardPage() {
       .select('turma_id, total_alunos, media_progresso')
       .in('turma_id', turmaIds)
 
-    const stats = statsRaw as { turma_id: string; total_alunos: number; media_progresso: number }[] | null
+    const stats = statsRaw as
+      | { turma_id: string; total_alunos: number; media_progresso: number }[]
+      | null
     if (stats && stats.length > 0) {
       totalAlunos = stats.reduce((sum, s) => sum + s.total_alunos, 0)
       taxaConclusaoMedia = Math.round(
-        stats.reduce((sum, s) => sum + (s.media_progresso ?? 0), 0) / stats.length
+        stats.reduce((sum, s) => sum + (s.media_progresso ?? 0), 0) / stats.length,
       )
       stats.forEach((s) => statsMap.set(s.turma_id, s))
     }
@@ -49,12 +53,8 @@ export default async function ProfessorDashboardPage() {
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Olá, Prof. {primeiroNome}! 👋
-        </h1>
-        <p className="text-slate-500 mt-1">
-          Aqui tens uma visão geral das tuas turmas.
-        </p>
+        <h1 className="text-2xl font-bold text-slate-900">Olá, Prof. {primeiroNome}! 👋</h1>
+        <p className="text-slate-500 mt-1">Aqui tens uma visão geral das tuas turmas.</p>
       </div>
 
       {/* Stats */}
@@ -144,9 +144,7 @@ export default async function ProfessorDashboardPage() {
             <div className="text-center py-10">
               <Users className="h-10 w-10 text-slate-300 mx-auto mb-3" />
               <p className="font-medium text-slate-700">Ainda não tens turmas</p>
-              <p className="text-sm text-slate-500 mt-1">
-                Cria a tua primeira turma para começar.
-              </p>
+              <p className="text-sm text-slate-500 mt-1">Cria a tua primeira turma para começar.</p>
               <Link
                 href="/professor/turmas"
                 className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
@@ -183,7 +181,9 @@ export default async function ProfessorDashboardPage() {
             </div>
             <div className="flex-1">
               <p className="font-medium text-slate-900">Gerir e atribuir módulos</p>
-              <p className="text-sm text-slate-500">Atribui módulos às tuas turmas e acompanha o progresso</p>
+              <p className="text-sm text-slate-500">
+                Atribui módulos às tuas turmas e acompanha o progresso
+              </p>
             </div>
             <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
           </Link>

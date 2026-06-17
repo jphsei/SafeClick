@@ -35,7 +35,7 @@ export function EditPerfilForm({ perfil }: Props) {
   const [erro, setErro] = useState<string | null>(null)
 
   const [nomeCompleto, setNomeCompleto] = useState(perfil.nome_completo)
-  const [numeroAluno, setNumeroAluno]   = useState(perfil.numero_aluno ?? '')
+  const [numeroAluno, setNumeroAluno] = useState(perfil.numero_aluno ?? '')
 
   // Ressincronizar ao abrir
   useEffect(() => {
@@ -43,7 +43,7 @@ export function EditPerfilForm({ perfil }: Props) {
     setErro(null)
     setNomeCompleto(perfil.nome_completo)
     setNumeroAluno(perfil.numero_aluno ?? '')
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   function handleSubmit(e: React.FormEvent) {
@@ -53,7 +53,7 @@ export function EditPerfilForm({ perfil }: Props) {
     startTransition(async () => {
       const res = await atualizarMeuPerfil({
         nome_completo: nomeCompleto,
-        numero_aluno:  numeroAluno,
+        numero_aluno: numeroAluno,
       })
 
       if (!res.ok) {
@@ -79,8 +79,8 @@ export function EditPerfilForm({ perfil }: Props) {
         <DialogHeader>
           <DialogTitle>Editar perfil</DialogTitle>
           <DialogDescription>
-            Atualiza os teus dados. Email, papel e escola não são editáveis
-            aqui — fala com um administrador se precisares de mudar algum.
+            Atualiza os teus dados. Email, papel e escola não são editáveis aqui — fala com um
+            administrador se precisares de mudar algum.
           </DialogDescription>
         </DialogHeader>
 
@@ -129,7 +129,9 @@ export function EditPerfilForm({ perfil }: Props) {
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">Cancelar</Button>
+              <Button type="button" variant="outline">
+                Cancelar
+              </Button>
             </DialogClose>
             <Button type="submit" disabled={pending || !nomeCompleto.trim()}>
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}

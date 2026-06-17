@@ -45,10 +45,7 @@ export function DesativarEscolaButton({ escolaId, nomeEscola, ativo }: Props) {
         title="Reativar escola"
         className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-green-50 hover:text-green-600 transition-colors disabled:opacity-50"
       >
-        {pending
-          ? <Loader2 className="h-4 w-4 animate-spin" />
-          : <RotateCcw className="h-4 w-4" />
-        }
+        {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
       </button>
     )
   }
@@ -62,10 +59,7 @@ export function DesativarEscolaButton({ escolaId, nomeEscola, ativo }: Props) {
           title="Desativar escola"
           className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
         >
-          {pending
-            ? <Loader2 className="h-4 w-4 animate-spin" />
-            : <Power className="h-4 w-4" />
-          }
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
         </button>
       </AlertDialogTrigger>
       <AlertDialogContent>
@@ -73,9 +67,9 @@ export function DesativarEscolaButton({ escolaId, nomeEscola, ativo }: Props) {
           <AlertDialogTitle>Confirmar ação</AlertDialogTitle>
           <AlertDialogDescription>
             Tens a certeza que queres desativar a escola{' '}
-            <span className="font-medium text-slate-900">{nomeEscola}</span>?
-            {' '}A escola deixa de estar visível mas o histórico (turmas, utilizadores)
-            mantém-se. Podes reativar mais tarde.
+            <span className="font-medium text-slate-900">{nomeEscola}</span>? A escola deixa de
+            estar visível mas o histórico (turmas, utilizadores) mantém-se. Podes reativar mais
+            tarde.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

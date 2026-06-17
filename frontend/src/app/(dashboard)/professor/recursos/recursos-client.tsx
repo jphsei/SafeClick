@@ -8,27 +8,27 @@ import { ApagarRecursoButton } from './apagar-recurso-button'
 import { type TipoRecurso } from '@/lib/types/database.types'
 
 const TIPO_LABELS: Record<TipoRecurso, string> = {
-  plano_aula:   'Plano de Aula',
+  plano_aula: 'Plano de Aula',
   apresentacao: 'Apresentação',
-  guia:         'Guia',
-  video:        'Vídeo',
-  documento:    'Documento',
+  guia: 'Guia',
+  video: 'Vídeo',
+  documento: 'Documento',
 }
 
 const TIPO_ICONS: Record<TipoRecurso, React.ReactNode> = {
-  plano_aula:   <FileText    className="h-5 w-5 text-blue-600" />,
+  plano_aula: <FileText className="h-5 w-5 text-blue-600" />,
   apresentacao: <Presentation className="h-5 w-5 text-purple-600" />,
-  guia:         <FileText    className="h-5 w-5 text-green-600" />,
-  video:        <Video       className="h-5 w-5 text-red-600" />,
-  documento:    <FileText    className="h-5 w-5 text-slate-600" />,
+  guia: <FileText className="h-5 w-5 text-green-600" />,
+  video: <Video className="h-5 w-5 text-red-600" />,
+  documento: <FileText className="h-5 w-5 text-slate-600" />,
 }
 
 const TIPO_COLORS: Record<TipoRecurso, string> = {
-  plano_aula:   'bg-blue-50',
+  plano_aula: 'bg-blue-50',
   apresentacao: 'bg-purple-50',
-  guia:         'bg-green-50',
-  video:        'bg-red-50',
-  documento:    'bg-slate-50',
+  guia: 'bg-green-50',
+  video: 'bg-red-50',
+  documento: 'bg-slate-50',
 }
 
 export type RecursoRow = {
@@ -48,18 +48,18 @@ interface Props {
 }
 
 export function RecursosClient({ recursos, modulos, professorId }: Props) {
-  const [tipoFiltro, setTipoFiltro]     = useState<TipoRecurso | 'todos'>('todos')
+  const [tipoFiltro, setTipoFiltro] = useState<TipoRecurso | 'todos'>('todos')
   const [moduloFiltro, setModuloFiltro] = useState<string>('todos')
-  const [pesquisa, setPesquisa]         = useState('')
+  const [pesquisa, setPesquisa] = useState('')
 
   const moduloMap = useMemo(
     () => Object.fromEntries(modulos.map((m) => [m.id, m.titulo])),
-    [modulos]
+    [modulos],
   )
 
   const tiposPresentes = useMemo(
     () => [...new Set(recursos.map((r) => r.tipo))] as TipoRecurso[],
-    [recursos]
+    [recursos],
   )
 
   const modulosPresentes = useMemo(() => {
@@ -72,7 +72,12 @@ export function RecursosClient({ recursos, modulos, professorId }: Props) {
     return recursos.filter((r) => {
       if (tipoFiltro !== 'todos' && r.tipo !== tipoFiltro) return false
       if (moduloFiltro !== 'todos' && r.modulo_id !== moduloFiltro) return false
-      if (q && !r.titulo.toLowerCase().includes(q) && !(r.descricao ?? '').toLowerCase().includes(q)) return false
+      if (
+        q &&
+        !r.titulo.toLowerCase().includes(q) &&
+        !(r.descricao ?? '').toLowerCase().includes(q)
+      )
+        return false
       return true
     })
   }, [recursos, tipoFiltro, moduloFiltro, pesquisa])
@@ -126,7 +131,9 @@ export function RecursosClient({ recursos, modulos, professorId }: Props) {
             >
               <option value="todos">Todos os módulos</option>
               {modulosPresentes.map((m) => (
-                <option key={m.id} value={m.id}>{m.titulo}</option>
+                <option key={m.id} value={m.id}>
+                  {m.titulo}
+                </option>
               ))}
             </select>
           )}
@@ -168,7 +175,9 @@ export function RecursosClient({ recursos, modulos, professorId }: Props) {
           <CardContent className="py-16 text-center">
             <FolderOpen className="h-12 w-12 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500">
-              {recursos.length === 0 ? 'Nenhum recurso disponível.' : 'Nenhum recurso corresponde aos filtros.'}
+              {recursos.length === 0
+                ? 'Nenhum recurso disponível.'
+                : 'Nenhum recurso corresponde aos filtros.'}
             </p>
           </CardContent>
         </Card>
@@ -191,7 +200,9 @@ export function RecursosClient({ recursos, modulos, professorId }: Props) {
                       key={recurso.id}
                       className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 hover:bg-slate-50 transition-colors"
                     >
-                      <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${TIPO_COLORS[tipo]}`}>
+                      <div
+                        className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${TIPO_COLORS[tipo]}`}
+                      >
                         {TIPO_ICONS[tipo]}
                       </div>
 

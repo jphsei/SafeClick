@@ -15,13 +15,13 @@ const nivelLabels: Record<NivelDificuldade, string> = {
 
 const estadoColors: Record<EstadoModulo, string> = {
   publicado: 'bg-green-100 text-green-700',
-  rascunho:  'bg-yellow-100 text-yellow-700',
+  rascunho: 'bg-yellow-100 text-yellow-700',
   arquivado: 'bg-slate-100 text-slate-500',
 }
 
 const estadoLabels: Record<EstadoModulo, string> = {
   publicado: 'Publicado',
-  rascunho:  'Rascunho',
+  rascunho: 'Rascunho',
   arquivado: 'Arquivado',
 }
 
@@ -42,12 +42,14 @@ export default async function AdminModulosPage() {
 
   const { data: modulosRaw } = await supabase
     .from('modulos')
-    .select('id, titulo, descricao, dificuldade, estado, ordem, pontos_conclusao, duracao_minutos, thumbnail_url')
+    .select(
+      'id, titulo, descricao, dificuldade, estado, ordem, pontos_conclusao, duracao_minutos, thumbnail_url',
+    )
     .order('ordem')
 
   const modulos = (modulosRaw as ModuloRow[] | null) ?? []
   const publicados = modulos.filter((m) => m.estado === 'publicado').length
-  const rascunhos  = modulos.filter((m) => m.estado === 'rascunho').length
+  const rascunhos = modulos.filter((m) => m.estado === 'rascunho').length
   const arquivados = modulos.filter((m) => m.estado === 'arquivado').length
 
   return (
@@ -107,10 +109,10 @@ export default async function AdminModulosPage() {
                       <Star className="h-3 w-3" />
                       {modulo.pontos_conclusao} pts
                     </span>
-                    <Badge variant={modulo.dificuldade}>
-                      {nivelLabels[modulo.dificuldade]}
-                    </Badge>
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${estadoColors[modulo.estado]}`}>
+                    <Badge variant={modulo.dificuldade}>{nivelLabels[modulo.dificuldade]}</Badge>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${estadoColors[modulo.estado]}`}
+                    >
                       {estadoLabels[modulo.estado]}
                     </span>
                     <div className="flex items-center gap-0.5">

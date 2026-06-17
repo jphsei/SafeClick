@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       {
         status: 429,
         headers: { 'Retry-After': String(limit.retryAfterSeconds ?? 900) },
-      }
+      },
     )
   }
 
@@ -66,14 +66,14 @@ export async function POST(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() { return cookieStore.getAll() },
+        getAll() {
+          return cookieStore.getAll()
+        },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
         },
       },
-    }
+    },
   )
 
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -89,21 +89,12 @@ export async function POST(request: NextRequest) {
       error.message.includes('Invalid login credentials') ||
       error.message.includes('invalid_credentials')
     ) {
-      return NextResponse.json(
-        { error: 'Email ou palavra-passe incorretos.' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Email ou palavra-passe incorretos.' }, { status: 401 })
     }
     if (error.message.includes('Email not confirmed')) {
-      return NextResponse.json(
-        { error: 'Confirma o teu email antes de entrar.' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Confirma o teu email antes de entrar.' }, { status: 401 })
     }
-    return NextResponse.json(
-      { error: 'Erro ao entrar. Tenta novamente.' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Erro ao entrar. Tenta novamente.' }, { status: 400 })
   }
 
   if (!data.user || !data.session) {
@@ -132,10 +123,7 @@ export async function POST(request: NextRequest) {
   const admin = createAdminClient()
 
   // Apagar sessões OTP antigas do mesmo utilizador (evitar acumulação)
-  await admin
-    .from('email_otp_sessions')
-    .delete()
-    .eq('user_id', data.user.id)
+  await admin.from('email_otp_sessions').delete().eq('user_id', data.user.id)
 
   const { data: otpSession, error: otpError } = await admin
     .from('email_otp_sessions')
@@ -150,7 +138,7 @@ export async function POST(request: NextRequest) {
     console.error('[AUTH] Erro ao criar sessão OTP:', otpError)
     return NextResponse.json(
       { error: 'Erro ao iniciar verificação. Tenta novamente.' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 
@@ -162,7 +150,7 @@ export async function POST(request: NextRequest) {
     console.error('[AUTH] Erro ao enviar email OTP:', mailError)
     return NextResponse.json(
       { error: 'Não foi possível enviar o email de verificação. Tenta novamente.' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 

@@ -31,9 +31,9 @@ interface Modulo {
 }
 
 const DIFICULDADE_LABELS: Record<NivelDificuldade, string> = {
-  basico:     'Básico',
+  basico: 'Básico',
   intermedio: 'Intermédio',
-  avancado:   'Avançado',
+  avancado: 'Avançado',
 }
 
 interface Props {
@@ -48,13 +48,17 @@ export function ModuloForm({ modulo }: Props) {
 
   const modoEditar = !!modulo
 
-  const [titulo, setTitulo]                   = useState(modulo?.titulo ?? '')
-  const [descricao, setDescricao]             = useState(modulo?.descricao ?? '')
-  const [dificuldade, setDificuldade]         = useState<NivelDificuldade>(modulo?.dificuldade ?? 'basico')
-  const [pontosConclusao, setPontosConclusao] = useState<string>(String(modulo?.pontos_conclusao ?? 10))
-  const [duracaoMinutos, setDuracaoMinutos]   = useState<string>(modulo?.duracao_minutos != null ? String(modulo.duracao_minutos) : '')
-  const [ordem, setOrdem]                     = useState<string>(String(modulo?.ordem ?? 0))
-  const [thumbnailUrl, setThumbnailUrl]       = useState(modulo?.thumbnail_url ?? '')
+  const [titulo, setTitulo] = useState(modulo?.titulo ?? '')
+  const [descricao, setDescricao] = useState(modulo?.descricao ?? '')
+  const [dificuldade, setDificuldade] = useState<NivelDificuldade>(modulo?.dificuldade ?? 'basico')
+  const [pontosConclusao, setPontosConclusao] = useState<string>(
+    String(modulo?.pontos_conclusao ?? 10),
+  )
+  const [duracaoMinutos, setDuracaoMinutos] = useState<string>(
+    modulo?.duracao_minutos != null ? String(modulo.duracao_minutos) : '',
+  )
+  const [ordem, setOrdem] = useState<string>(String(modulo?.ordem ?? 0))
+  const [thumbnailUrl, setThumbnailUrl] = useState(modulo?.thumbnail_url ?? '')
 
   useEffect(() => {
     if (!open) return
@@ -66,7 +70,7 @@ export function ModuloForm({ modulo }: Props) {
     setDuracaoMinutos(modulo?.duracao_minutos != null ? String(modulo.duracao_minutos) : '')
     setOrdem(String(modulo?.ordem ?? 0))
     setThumbnailUrl(modulo?.thumbnail_url ?? '')
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   function handleSubmit(e: React.FormEvent) {
@@ -79,9 +83,9 @@ export function ModuloForm({ modulo }: Props) {
         descricao,
         dificuldade,
         pontos_conclusao: pontosConclusao,
-        duracao_minutos:  duracaoMinutos,
+        duracao_minutos: duracaoMinutos,
         ordem,
-        thumbnail_url:    thumbnailUrl,
+        thumbnail_url: thumbnailUrl,
       }
 
       const res = modoEditar
@@ -167,7 +171,9 @@ export function ModuloForm({ modulo }: Props) {
                 className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {(Object.keys(DIFICULDADE_LABELS) as NivelDificuldade[]).map((d) => (
-                  <option key={d} value={d}>{DIFICULDADE_LABELS[d]}</option>
+                  <option key={d} value={d}>
+                    {DIFICULDADE_LABELS[d]}
+                  </option>
                 ))}
               </select>
             </div>
@@ -220,13 +226,19 @@ export function ModuloForm({ modulo }: Props) {
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">Cancelar</Button>
+              <Button type="button" variant="outline">
+                Cancelar
+              </Button>
             </DialogClose>
             <Button type="submit" disabled={pending || !titulo.trim()}>
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}
               {pending
-                ? (modoEditar ? 'A guardar...' : 'A criar...')
-                : (modoEditar ? 'Guardar' : 'Criar módulo')}
+                ? modoEditar
+                  ? 'A guardar...'
+                  : 'A criar...'
+                : modoEditar
+                  ? 'Guardar'
+                  : 'Criar módulo'}
             </Button>
           </DialogFooter>
         </form>

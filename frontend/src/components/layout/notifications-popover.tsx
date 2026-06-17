@@ -33,17 +33,17 @@ interface Props {
 }
 
 const TIPO_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
-  info:       Info,
-  sucesso:    CheckCircle,
-  aviso:      AlertTriangle,
-  conquista:  Trophy,
+  info: Info,
+  sucesso: CheckCircle,
+  aviso: AlertTriangle,
+  conquista: Trophy,
 }
 
 const TIPO_COLOR: Record<string, string> = {
-  info:       'text-blue-500',
-  sucesso:    'text-green-500',
-  aviso:      'text-yellow-500',
-  conquista:  'text-purple-500',
+  info: 'text-blue-500',
+  sucesso: 'text-green-500',
+  aviso: 'text-yellow-500',
+  conquista: 'text-purple-500',
 }
 
 export function NotificationsPopover({ notificacoes, naoLidas }: Props) {
@@ -129,7 +129,9 @@ export function NotificationsPopover({ notificacoes, naoLidas }: Props) {
                     >
                       <Icon className={`h-4 w-4 flex-shrink-0 mt-0.5 ${colorClass}`} />
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm leading-tight truncate ${notif.lida ? 'text-slate-700' : 'font-medium text-slate-900'}`}>
+                        <p
+                          className={`text-sm leading-tight truncate ${notif.lida ? 'text-slate-700' : 'font-medium text-slate-900'}`}
+                        >
                           {notif.titulo}
                         </p>
                         <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
@@ -140,7 +142,10 @@ export function NotificationsPopover({ notificacoes, naoLidas }: Props) {
                         </p>
                       </div>
                       {!notif.lida && (
-                        <span className="flex-shrink-0 mt-1.5 h-2 w-2 rounded-full bg-blue-600" aria-hidden />
+                        <span
+                          className="flex-shrink-0 mt-1.5 h-2 w-2 rounded-full bg-blue-600"
+                          aria-hidden
+                        />
                       )}
                     </button>
                   </li>

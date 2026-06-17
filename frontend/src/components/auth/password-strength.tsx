@@ -41,9 +41,13 @@ export function PasswordStrength({ password }: PasswordStrengthProps) {
         </div>
         <span
           className={`text-xs font-medium ${
-            strength === 3 ? 'text-green-600' :
-            strength === 2 ? 'text-yellow-600' :
-            strength === 1 ? 'text-orange-500' : 'text-red-500'
+            strength === 3
+              ? 'text-green-600'
+              : strength === 2
+                ? 'text-yellow-600'
+                : strength === 1
+                  ? 'text-orange-500'
+                  : 'text-red-500'
           }`}
         >
           {STRENGTH_LABELS[strength]}
@@ -52,10 +56,11 @@ export function PasswordStrength({ password }: PasswordStrengthProps) {
       <ul className="space-y-0.5">
         {Object.values(checks).map((c) => (
           <li key={c.label} className="flex items-center gap-1.5">
-            {c.ok
-              ? <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
-              : <X className="h-3 w-3 text-slate-400 flex-shrink-0" />
-            }
+            {c.ok ? (
+              <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
+            ) : (
+              <X className="h-3 w-3 text-slate-400 flex-shrink-0" />
+            )}
             <span className={`text-xs ${c.ok ? 'text-green-700' : 'text-slate-500'}`}>
               {c.label}
             </span>

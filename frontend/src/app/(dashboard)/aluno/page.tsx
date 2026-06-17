@@ -59,12 +59,14 @@ export default async function AlunoDashboardPage() {
     .order('ordem')
     .limit(4)
 
-  const modulos = modulosRaw as {
-    id: string
-    titulo: string
-    descricao: string | null
-    dificuldade: NivelDificuldade
-  }[] | null
+  const modulos = modulosRaw as
+    | {
+        id: string
+        titulo: string
+        descricao: string | null
+        dificuldade: NivelDificuldade
+      }[]
+    | null
 
   const { data: badgesRaw } = await supabase
     .from('utilizador_badges')
@@ -73,21 +75,19 @@ export default async function AlunoDashboardPage() {
     .order('ganho_em', { ascending: false })
     .limit(3)
 
-  const badges = badgesRaw as {
-    badge_id: string
-    ganho_em: string
-    badges: { nome: string; icone_url: string | null } | null
-  }[] | null
+  const badges = badgesRaw as
+    | {
+        badge_id: string
+        ganho_em: string
+        badges: { nome: string; icone_url: string | null } | null
+      }[]
+    | null
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Olá, {primeiroNome}! 👋
-        </h1>
-        <p className="text-slate-500 mt-1">
-          Bem-vindo de volta à tua área de aprendizagem.
-        </p>
+        <h1 className="text-2xl font-bold text-slate-900">Olá, {primeiroNome}! 👋</h1>
+        <p className="text-slate-500 mt-1">Bem-vindo de volta à tua área de aprendizagem.</p>
       </div>
 
       {/* Entrar em turma — em destaque se ainda não tem turma */}
@@ -160,14 +160,10 @@ export default async function AlunoDashboardPage() {
                     <BookOpen className="h-4 w-4 text-blue-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">
-                      {modulo.titulo}
-                    </p>
+                    <p className="text-sm font-medium text-slate-900 truncate">{modulo.titulo}</p>
                     <p className="text-xs text-slate-500 truncate">{modulo.descricao}</p>
                   </div>
-                  <Badge variant={modulo.dificuldade}>
-                    {nivelLabel[modulo.dificuldade]}
-                  </Badge>
+                  <Badge variant={modulo.dificuldade}>{nivelLabel[modulo.dificuldade]}</Badge>
                 </Link>
               ))
             ) : (
