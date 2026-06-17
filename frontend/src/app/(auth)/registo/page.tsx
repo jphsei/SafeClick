@@ -23,7 +23,6 @@ export default function RegistoPage() {
   const [confirmarPassword, setConfirmarPassword] = useState('')
   const [codigoTurma, setCodigoTurma] = useState('')
   const [codigoStatus, setCodigoStatus] = useState<CodigoStatus>('idle')
-  const [nomeTurma, setNomeTurma] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -40,17 +39,17 @@ export default function RegistoPage() {
 
     if (!code) {
       setCodigoStatus('idle')
-      setNomeTurma(null)
       return
     }
 
     setCodigoStatus('validando')
-    setNomeTurma(null)
 
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any).rpc('fn_validar_codigo_turma', { p_codigo: code })
+      const { data, error } = await (supabase as any).rpc('fn_validar_codigo_turma', {
+        p_codigo: code,
+      })
       if (error || !data) {
         setCodigoStatus('invalido')
       } else {
@@ -61,7 +60,7 @@ export default function RegistoPage() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codigoTurma])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -127,13 +126,9 @@ export default function RegistoPage() {
       // ── 2. Enroll in turma (if code provided) ────────────────────────────
       if (codigoFinal) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: inscricao } = await (supabase as any).rpc('fn_inscrever_por_codigo', {
+        await (supabase as any).rpc('fn_inscrever_por_codigo', {
           p_codigo: codigoFinal,
         })
-
-        if (inscricao?.turma_nome) {
-          setNomeTurma(inscricao.turma_nome as string)
-        }
         // If enrollment fails (race condition / code deactivated between validation and signup),
         // we still proceed — the user has an account and can be added to a class later.
       }
@@ -194,8 +189,7 @@ export default function RegistoPage() {
         {/* Class code — optional */}
         <div className="space-y-1.5">
           <Label htmlFor="codigoTurma">
-            Código de turma{' '}
-            <span className="text-slate-400 font-normal">(opcional)</span>
+            Código de turma <span className="text-slate-400 font-normal">(opcional)</span>
           </Label>
           <div className="relative">
             <Input
@@ -206,20 +200,19 @@ export default function RegistoPage() {
               onChange={(e) => setCodigoTurma(e.target.value.toUpperCase())}
               autoComplete="off"
               className={`pr-9 font-mono tracking-wider ${
-                codigoStatus === 'valido'   ? 'border-green-400 focus-visible:ring-green-400' :
-                codigoStatus === 'invalido' ? 'border-red-400   focus-visible:ring-red-400'   : ''
+                codigoStatus === 'valido'
+                  ? 'border-green-400 focus-visible:ring-green-400'
+                  : codigoStatus === 'invalido'
+                    ? 'border-red-400   focus-visible:ring-red-400'
+                    : ''
               }`}
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               {codigoStatus === 'validando' && (
                 <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
               )}
-              {codigoStatus === 'valido' && (
-                <Check className="h-4 w-4 text-green-600" />
-              )}
-              {codigoStatus === 'invalido' && (
-                <X className="h-4 w-4 text-red-500" />
-              )}
+              {codigoStatus === 'valido' && <Check className="h-4 w-4 text-green-600" />}
+              {codigoStatus === 'invalido' && <X className="h-4 w-4 text-red-500" />}
             </div>
           </div>
 
@@ -303,7 +296,10 @@ export default function RegistoPage() {
 
       <div className="mt-6 text-center text-sm text-slate-600">
         Já tens conta?{' '}
-        <Link href="/login" className="font-medium text-blue-600 hover:text-blue-700 hover:underline">
+        <Link
+          href="/login"
+          className="font-medium text-blue-600 hover:text-blue-700 hover:underline"
+        >
           Entrar
         </Link>
       </div>

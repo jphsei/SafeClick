@@ -1,8 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, AlertTriangle, ShieldCheck, ShieldX, Loader2, ExternalLink, Info } from 'lucide-react'
+import {
+  Mail,
+  AlertTriangle,
+  ShieldCheck,
+  ShieldX,
+  Loader2,
+  ExternalLink,
+  Info,
+} from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -24,7 +32,6 @@ type Fase = 'email' | 'resultado'
 
 export function SimulacaoClient({
   simulacaoId,
-  titulo,
   assuntoEmail,
   corpoEmail,
   remetenteFalso,
@@ -37,11 +44,17 @@ export function SimulacaoClient({
   const supabase = createClient()
 
   const [fase, setFase] = useState<Fase>(tentativaAnterior ? 'resultado' : 'email')
-  const [decisao, setDecisao] = useState<EstadoSimulacao | null>(
-    tentativaAnterior?.estado ?? null
-  )
+  const [decisao, setDecisao] = useState<EstadoSimulacao | null>(tentativaAnterior?.estado ?? null)
   const [loading, setLoading] = useState(false)
-  const [inicio, setInicio] = useState(Date.now())
+
+  // `inicio` mede quanto tempo o aluno demorou a decidir.
+  // Em ref (não state) porque é só usado em event handlers — não precisa de
+  // re-render. Inicializado num useEffect para não chamar Date.now() durante
+  // o render (React 19 purity rule).
+  const inicioRef = useRef<number>(0)
+  useEffect(() => {
+    inicioRef.current = Date.now()
+  }, [])
 
   async function handleDecisao(estado: EstadoSimulacao) {
     setLoading(true)
@@ -49,9 +62,12 @@ export function SimulacaoClient({
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
-    const tempoDecisao = Math.round((Date.now() - inicio) / 1000)
+    const tempoDecisao = Math.round((Date.now() - inicioRef.current) / 1000)
     const pontosGanhos = estado === 'reportou' ? pontosSucesso : 0
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -89,9 +105,6 @@ export function SimulacaoClient({
     router.refresh()
   }
 
-  const eraPhishing = true // all simulations are phishing
-  const acertou = decisao === 'reportou'
-
   // ─── EMAIL VIEW ──────────────────────────────────────────────────────────
   if (fase === 'email') {
     return (
@@ -100,8 +113,8 @@ export function SimulacaoClient({
         <div className="flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
           <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
           <p className="text-sm text-amber-800">
-            <span className="font-semibold">Simulação de segurança.</span> Analisa o email abaixo
-            e decide como reagires.
+            <span className="font-semibold">Simulação de segurança.</span> Analisa o email abaixo e
+            decide como reagires.
           </p>
         </div>
 
@@ -154,7 +167,11 @@ export function SimulacaoClient({
                 disabled={loading}
                 className="bg-green-600 hover:bg-green-700 flex-col h-auto py-4"
               >
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShieldCheck className="h-5 w-5" />}
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <ShieldCheck className="h-5 w-5" />
+                )}
                 <span className="mt-1 text-xs">Reportar como phishing</span>
               </Button>
               <Button
@@ -171,7 +188,11 @@ export function SimulacaoClient({
                 disabled={loading}
                 className="bg-red-600 hover:bg-red-700 flex-col h-auto py-4"
               >
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ExternalLink className="h-5 w-5" />}
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <ExternalLink className="h-5 w-5" />
+                )}
                 <span className="mt-1 text-xs">Clicar no link</span>
               </Button>
             </div>
@@ -206,9 +227,10 @@ export function SimulacaoClient({
     },
   }
 
-  const infoKey = (decisao === 'reportou' || decisao === 'ignorou' || decisao === 'clicou')
-    ? decisao
-    : 'ignorou' as const
+  const infoKey =
+    decisao === 'reportou' || decisao === 'ignorou' || decisao === 'clicou'
+      ? decisao
+      : ('ignorou' as const)
   const info = resultadoInfo[infoKey]
 
   return (
@@ -284,14 +306,12 @@ export function SimulacaoClient({
           onClick={() => {
             setFase('email')
             setDecisao(null)
-            setInicio(Date.now())
+            inicioRef.current = Date.now()
           }}
         >
           Tentar novamente
         </Button>
-        <Button onClick={() => router.push('/aluno/simulacoes')}>
-          Ver simulações
-        </Button>
+        <Button onClick={() => router.push('/aluno/simulacoes')}>Ver simulações</Button>
       </div>
     </div>
   )

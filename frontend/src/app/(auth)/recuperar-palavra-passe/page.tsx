@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Loader2, Mail, ArrowLeft, CheckCircle } from 'lucide-react'
+import { Loader2, Mail, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,8 +53,8 @@ export default function RecuperarPalavraPassePage() {
         <div>
           <h2 className="text-xl font-bold text-slate-900">Email enviado!</h2>
           <p className="text-slate-600 mt-2 text-sm">
-            Se existir uma conta com o email <strong>{email}</strong>, receberás um
-            link para redefinir a palavra-passe.
+            Se existir uma conta com o email <strong>{email}</strong>, receberás um link para
+            redefinir a palavra-passe.
           </p>
           <p className="text-slate-400 text-xs mt-2">
             Não encontras o email? Verifica a pasta de spam.

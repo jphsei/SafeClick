@@ -60,7 +60,6 @@ export function QuizClient({
   tempoLimiteMinutos,
   tentativasMax,
   tentativasFeitas,
-  tentativasRestantes,
   perguntas,
   tentativaAnterior,
 }: QuizClientProps) {
@@ -81,7 +80,7 @@ export function QuizClient({
   } | null>(null)
 
   const [tempoRestante, setTempoRestante] = useState<number | null>(
-    tempoLimiteMinutos ? tempoLimiteMinutos * 60 : null
+    tempoLimiteMinutos ? tempoLimiteMinutos * 60 : null,
   )
 
   const handleSubmit = useCallback(async () => {
@@ -93,7 +92,7 @@ export function QuizClient({
     // servidor pela RPC fn_submeter_quiz. O cliente apenas envia
     // { pergunta_id: opcao_id } e recebe o resultado já validado.
     const { data, error } = await supabase.rpc('fn_submeter_quiz', {
-      p_quiz_id:   quizId,
+      p_quiz_id: quizId,
       p_respostas: respostas,
     })
 
@@ -113,21 +112,31 @@ export function QuizClient({
 
     setTentativasUsadas((prev) => prev + 1)
     setResultado({
-      nota:         res.nota ?? 0,
+      nota: res.nota ?? 0,
       pontosGanhos: res.pontos_ganhos ?? 0,
-      corretas:     res.corretas ?? 0,
-      total:        res.total ?? perguntas.length,
-      detalhes:     res.detalhes ?? [],
+      corretas: res.corretas ?? 0,
+      total: res.total ?? perguntas.length,
+      detalhes: res.detalhes ?? [],
     })
     setFase('resultado')
     setSubmitting(false)
     router.refresh()
   }, [supabase, quizId, respostas, perguntas.length, submitting, router])
 
-  // Timer countdown
+  // Timer countdown — quando o tempo chega a zero, auto-submit do quiz.
+  //
+  // O `handleSubmit()` chamado abaixo dispara setState (setSubmitting,
+  // setResultado, setFase), o que tecnicamente viola
+  // `react-hooks/set-state-in-effect`. Separar em dois effects (um para
+  // countdown, outro para submit ao chegar a zero) não resolve a regra —
+  // o segundo effect continuaria a chamar handleSubmit. A regra parte do
+  // princípio de que existe sempre uma alternativa idiomática (mover a
+  // lógica para fora do React) mas aqui o trigger é puramente baseado
+  // em estado React: queremos que a UI reaja a `tempoRestante === 0`.
   useEffect(() => {
     if (fase !== 'quiz' || tempoRestante === null) return
     if (tempoRestante <= 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       handleSubmit()
       return
     }
@@ -152,8 +161,14 @@ export function QuizClient({
       <div className="max-w-2xl mx-auto space-y-6">
         <Card>
           <CardContent className="pt-8 pb-8 text-center space-y-4">
-            <div className={`flex h-16 w-16 items-center justify-center rounded-2xl mx-auto ${esgotado ? 'bg-slate-100' : 'bg-blue-100'}`}>
-              {esgotado ? <Lock className="h-8 w-8 text-slate-400" /> : <span className="text-3xl">📝</span>}
+            <div
+              className={`flex h-16 w-16 items-center justify-center rounded-2xl mx-auto ${esgotado ? 'bg-slate-100' : 'bg-blue-100'}`}
+            >
+              {esgotado ? (
+                <Lock className="h-8 w-8 text-slate-400" />
+              ) : (
+                <span className="text-3xl">📝</span>
+              )}
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-900">{titulo}</h2>
@@ -188,7 +203,9 @@ export function QuizClient({
               </p>
             ) : (
               <Button onClick={() => setFase('quiz')} size="lg" className="w-full sm:w-auto">
-                {tentativaAnterior ? `Tentar novamente (${restantes} restante${restantes !== 1 ? 's' : ''})` : 'Começar quiz'}
+                {tentativaAnterior
+                  ? `Tentar novamente (${restantes} restante${restantes !== 1 ? 's' : ''})`
+                  : 'Começar quiz'}
               </Button>
             )}
           </CardContent>
@@ -215,27 +232,27 @@ export function QuizClient({
             </div>
             <div className="flex items-center justify-center gap-8">
               <div>
-                <p className="text-3xl font-bold text-slate-900">
-                  {Math.round(resultado.nota)}%
-                </p>
+                <p className="text-3xl font-bold text-slate-900">{Math.round(resultado.nota)}%</p>
                 <p className="text-sm text-slate-500">nota</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-blue-600">
-                  +{resultado.pontosGanhos}
-                </p>
+                <p className="text-3xl font-bold text-blue-600">+{resultado.pontosGanhos}</p>
                 <p className="text-sm text-slate-500">pontos</p>
               </div>
             </div>
             <div className="flex gap-2 justify-center">
               {tentativasUsadas < tentativasMax && (
-                <Button onClick={() => { setFase('intro'); setRespostas({}) }} variant="outline">
+                <Button
+                  onClick={() => {
+                    setFase('intro')
+                    setRespostas({})
+                  }}
+                  variant="outline"
+                >
                   Tentar novamente
                 </Button>
               )}
-              <Button onClick={() => router.push('/aluno/quizzes')}>
-                Ver todos os quizzes
-              </Button>
+              <Button onClick={() => router.push('/aluno/quizzes')}>Ver todos os quizzes</Button>
             </div>
           </CardContent>
         </Card>
@@ -249,7 +266,10 @@ export function QuizClient({
             const opcaoSelecionada = pergunta.opcoes.find((o) => o.id === respostas[pergunta.id])
 
             return (
-              <Card key={pergunta.id} className={detalhe?.correta ? 'border-green-200' : 'border-red-200'}>
+              <Card
+                key={pergunta.id}
+                className={detalhe?.correta ? 'border-green-200' : 'border-red-200'}
+              >
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-start gap-3">
                     {detalhe?.correta ? (
@@ -261,11 +281,12 @@ export function QuizClient({
                       <p className="font-medium text-slate-900 text-sm">{pergunta.enunciado}</p>
                       {!detalhe?.correta && (
                         <div className="mt-2 space-y-1 text-xs">
-                          {opcaoSelecionada && opcaoSelecionada.id !== detalhe?.opcao_correta_id && (
-                            <p className="text-red-600">
-                              A tua resposta: {opcaoSelecionada.texto}
-                            </p>
-                          )}
+                          {opcaoSelecionada &&
+                            opcaoSelecionada.id !== detalhe?.opcao_correta_id && (
+                              <p className="text-red-600">
+                                A tua resposta: {opcaoSelecionada.texto}
+                              </p>
+                            )}
                           <p className="text-green-600 font-medium">
                             Resposta correta: {detalhe?.opcao_correta_texto ?? '—'}
                           </p>
@@ -333,9 +354,7 @@ export function QuizClient({
                   return (
                     <button
                       key={opcao.id}
-                      onClick={() =>
-                        setRespostas((prev) => ({ ...prev, [pergunta.id]: opcao.id }))
-                      }
+                      onClick={() => setRespostas((prev) => ({ ...prev, [pergunta.id]: opcao.id }))}
                       className={`w-full text-left rounded-lg border px-4 py-3 text-sm transition-all ${
                         selecionada
                           ? 'border-blue-500 bg-blue-50 text-blue-900 font-medium'
@@ -362,13 +381,10 @@ export function QuizClient({
       {/* Submit */}
       <div className="flex items-center justify-between gap-4 pt-2">
         <p className="text-sm text-slate-500">
-          {!todasRespondidas && `Faltam ${perguntas.length - Object.keys(respostas).length} respostas`}
+          {!todasRespondidas &&
+            `Faltam ${perguntas.length - Object.keys(respostas).length} respostas`}
         </p>
-        <Button
-          onClick={handleSubmit}
-          disabled={!todasRespondidas || submitting}
-          size="lg"
-        >
+        <Button onClick={handleSubmit} disabled={!todasRespondidas || submitting} size="lg">
           {submitting ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (

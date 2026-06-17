@@ -53,10 +53,7 @@ export function EstadoModuloButtons({ moduloId, tituloModulo, estado }: Props) {
         title="Desarquivar (volta a rascunho)"
         className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-green-50 hover:text-green-600 transition-colors disabled:opacity-50"
       >
-        {pending
-          ? <Loader2 className="h-4 w-4 animate-spin" />
-          : <RotateCcw className="h-4 w-4" />
-        }
+        {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
       </button>
     )
   }
@@ -71,10 +68,7 @@ export function EstadoModuloButtons({ moduloId, tituloModulo, estado }: Props) {
           title="Publicar módulo"
           className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-colors disabled:opacity-50"
         >
-          {pending
-            ? <Loader2 className="h-4 w-4 animate-spin" />
-            : <Send className="h-4 w-4" />
-          }
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </button>
       ) : (
         // Despublicar (publicado → rascunho) precisa de confirmação
@@ -85,26 +79,25 @@ export function EstadoModuloButtons({ moduloId, tituloModulo, estado }: Props) {
               title="Despublicar (esconde dos alunos)"
               className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-yellow-50 hover:text-yellow-600 transition-colors disabled:opacity-50"
             >
-              {pending
-                ? <Loader2 className="h-4 w-4 animate-spin" />
-                : <EyeOff className="h-4 w-4" />
-              }
+              {pending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <EyeOff className="h-4 w-4" />
+              )}
             </button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Despublicar módulo</AlertDialogTitle>
               <AlertDialogDescription>
-                Despublicar <span className="font-medium text-slate-900">{tituloModulo}</span>?
-                {' '}O módulo volta a estado "rascunho" e deixa de ser visível
-                para os alunos. Progresso existente preservado.
+                Despublicar <span className="font-medium text-slate-900">{tituloModulo}</span>? O
+                módulo volta a estado &quot;rascunho&quot; e deixa de ser visível para os alunos.
+                Progresso existente preservado.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={() => mudar('rascunho')}>
-                Despublicar
-              </AlertDialogAction>
+              <AlertDialogAction onClick={() => mudar('rascunho')}>Despublicar</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -118,27 +111,25 @@ export function EstadoModuloButtons({ moduloId, tituloModulo, estado }: Props) {
             title="Arquivar módulo"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
           >
-            {pending
-              ? <Loader2 className="h-4 w-4 animate-spin" />
-              : <Archive className="h-4 w-4" />
-            }
+            {pending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Archive className="h-4 w-4" />
+            )}
           </button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Arquivar módulo</AlertDialogTitle>
             <AlertDialogDescription>
-              Arquivar <span className="font-medium text-slate-900">{tituloModulo}</span>?
-              {' '}O módulo deixa de aparecer (alunos e admin) mas o histórico
-              (aulas, quizzes, tentativas) mantém-se. Pode-se desarquivar
-              depois.
+              Arquivar <span className="font-medium text-slate-900">{tituloModulo}</span>? O módulo
+              deixa de aparecer (alunos e admin) mas o histórico (aulas, quizzes, tentativas)
+              mantém-se. Pode-se desarquivar depois.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => mudar('arquivado')}>
-              Arquivar
-            </AlertDialogAction>
+            <AlertDialogAction onClick={() => mudar('arquivado')}>Arquivar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

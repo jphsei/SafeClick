@@ -21,7 +21,6 @@ export function Header({
   notificacoes = [],
 }: HeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -58,10 +57,7 @@ export function Header({
       {/* Right side */}
       <div className="flex items-center gap-2">
         {/* Notifications */}
-        <NotificationsPopover
-          notificacoes={notificacoes}
-          naoLidas={notificacoesNaoLidas}
-        />
+        <NotificationsPopover notificacoes={notificacoes} naoLidas={notificacoesNaoLidas} />
 
         {/* User menu */}
         <div className="relative">
@@ -81,7 +77,7 @@ export function Header({
             <ChevronDown
               className={cn(
                 'h-4 w-4 text-slate-400 transition-transform hidden sm:block',
-                dropdownOpen && 'rotate-180'
+                dropdownOpen && 'rotate-180',
               )}
             />
           </button>
@@ -89,15 +85,10 @@ export function Header({
           {/* Dropdown */}
           {dropdownOpen && (
             <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setDropdownOpen(false)}
-              />
+              <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
               <div className="absolute right-0 top-full z-20 mt-1 w-52 rounded-xl border border-slate-200 bg-white shadow-lg py-1">
                 <div className="px-3 py-2.5 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-900 truncate">
-                    {nomeUtilizador}
-                  </p>
+                  <p className="text-xs font-semibold text-slate-900 truncate">{nomeUtilizador}</p>
                   <p className="text-xs text-slate-500 truncate mt-0.5">{email}</p>
                 </div>
                 <button
@@ -107,8 +98,7 @@ export function Header({
                   }}
                   className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                 >
-                  <User className="h-4 w-4 text-slate-400" />
-                  O meu perfil
+                  <User className="h-4 w-4 text-slate-400" />O meu perfil
                 </button>
                 <div className="my-1 border-t border-slate-100" />
                 <button
