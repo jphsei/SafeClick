@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   if (!limit.allowed) {
     return NextResponse.json(
       { error: 'Demasiadas tentativas. Volta a fazer login para obter um novo código.' },
-      { status: 429 }
+      { status: 429 },
     )
   }
 
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
   if (fetchError || !session) {
     return NextResponse.json(
       { error: 'Código expirado ou inválido. Volta a fazer login.' },
-      { status: 401 }
+      { status: 401 },
     )
   }
 
@@ -61,14 +61,14 @@ export async function POST(request: NextRequest) {
   if (session.used) {
     return NextResponse.json(
       { error: 'Este código já foi utilizado. Volta a fazer login.' },
-      { status: 401 }
+      { status: 401 },
     )
   }
 
   if (new Date(session.expires_at) < new Date()) {
     return NextResponse.json(
       { error: 'O código expirou. Volta a fazer login para obter um novo código.' },
-      { status: 401 }
+      { status: 401 },
     )
   }
 
@@ -76,15 +76,12 @@ export async function POST(request: NextRequest) {
     console.warn(`[OTP] Código incorreto — ip=${ip} session=${otp_session_id}`)
     return NextResponse.json(
       { error: 'Código incorreto. Verifica o teu email e tenta novamente.' },
-      { status: 401 }
+      { status: 401 },
     )
   }
 
   // ── 5. Marcar como usado ──────────────────────────────────────────────────
-  await admin
-    .from('email_otp_sessions')
-    .update({ used: true })
-    .eq('id', otp_session_id)
+  await admin.from('email_otp_sessions').update({ used: true }).eq('id', otp_session_id)
 
   console.info(`[OTP] Verificação bem-sucedida — ip=${ip} session=${otp_session_id}`)
 

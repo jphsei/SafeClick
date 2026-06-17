@@ -4,7 +4,14 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { BookOpen, Filter, Loader2, Clock, CheckCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { type Modulo, type NivelDificuldade } from '@/lib/types/database.types'
@@ -35,11 +42,7 @@ export default function ModulosPage() {
       } = await supabase.auth.getUser()
 
       const [modulosRes, progressoRes] = await Promise.all([
-        supabase
-          .from('modulos')
-          .select('*')
-          .eq('estado', 'publicado')
-          .order('ordem'),
+        supabase.from('modulos').select('*').eq('estado', 'publicado').order('ordem'),
         user
           ? supabase
               .from('progresso_modulo')
@@ -54,9 +57,11 @@ export default function ModulosPage() {
 
       if (progressoRes.data) {
         const map: ProgressoMap = {}
-        ;(progressoRes.data as { modulo_id: string; percentagem: number; concluido: boolean }[]).forEach(
-          (p) => { map[p.modulo_id] = { percentagem: p.percentagem, concluido: p.concluido } }
-        )
+        ;(
+          progressoRes.data as { modulo_id: string; percentagem: number; concluido: boolean }[]
+        ).forEach((p) => {
+          map[p.modulo_id] = { percentagem: p.percentagem, concluido: p.concluido }
+        })
         setProgresso(map)
       }
 
@@ -67,17 +72,13 @@ export default function ModulosPage() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const modulosFiltrados =
-    filtro === 'todos'
-      ? modulos
-      : modulos.filter((m) => m.dificuldade === filtro)
+    filtro === 'todos' ? modulos : modulos.filter((m) => m.dificuldade === filtro)
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Módulos de aprendizagem</h1>
-        <p className="text-slate-500 mt-1">
-          Explora os conteúdos de cibersegurança disponíveis.
-        </p>
+        <p className="text-slate-500 mt-1">Explora os conteúdos de cibersegurança disponíveis.</p>
       </div>
 
       {/* Filters */}
@@ -110,9 +111,7 @@ export default function ModulosPage() {
       {!loading && modulosFiltrados.length === 0 && (
         <div className="text-center py-16">
           <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-slate-700 mb-1">
-            Nenhum módulo encontrado
-          </h3>
+          <h3 className="text-lg font-medium text-slate-700 mb-1">Nenhum módulo encontrado</h3>
           <p className="text-slate-500 text-sm">
             {filtro !== 'todos'
               ? `Não há módulos de nível ${nivelLabels[filtro as NivelDificuldade].toLowerCase()} disponíveis.`

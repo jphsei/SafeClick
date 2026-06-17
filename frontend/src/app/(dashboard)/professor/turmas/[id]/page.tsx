@@ -2,18 +2,14 @@ export const dynamic = 'force-dynamic'
 
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Users, BookOpen, TrendingUp, ShieldAlert, Key } from 'lucide-react'
+import { ArrowLeft, Users, BookOpen } from 'lucide-react'
 import { requireRole } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { AdicionarAlunoForm } from './adicionar-aluno-form'
 import { RemoverAlunoButton } from './remover-aluno-button'
 import { CodigoAcessoCard } from './codigo-acesso-card'
 
-export default async function TurmaDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function TurmaDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const { user, supabase } = await requireRole('professor')
 
@@ -45,21 +41,22 @@ export default async function TurmaDetailPage({
     .eq('ativo', true)
     .order('inscrito_em')
 
-  const alunos = (alunosRaw as {
-    id: string
-    aluno_id: string
-    inscrito_em: string
-    perfis: {
-      nome_completo: string
-      email: string
-      numero_aluno: string | null
-      pontos_total: number
-    } | null
-  }[]) ?? []
+  const alunos =
+    (alunosRaw as {
+      id: string
+      aluno_id: string
+      inscrito_em: string
+      perfis: {
+        nome_completo: string
+        email: string
+        numero_aluno: string | null
+        pontos_total: number
+      } | null
+    }[]) ?? []
 
   // Fetch progress for each student from view
   const alunoIds = alunos.map((a) => a.aluno_id)
-  let progressoMap = new Map<string, { modulos_concluidos: number; media_progresso: number }>()
+  const progressoMap = new Map<string, { modulos_concluidos: number; media_progresso: number }>()
 
   if (alunoIds.length > 0) {
     const { data: progRaw } = await supabase
@@ -67,18 +64,18 @@ export default async function TurmaDetailPage({
       .select('aluno_id, percentagem, concluido')
       .in('aluno_id', alunoIds)
 
-    const prog = progRaw as { aluno_id: string; percentagem: number; concluido: boolean }[] ?? []
+    const prog = (progRaw as { aluno_id: string; percentagem: number; concluido: boolean }[]) ?? []
 
     // Group by aluno_id
-    const grouped = prog.reduce<Record<string, { total: number; concluidos: number; soma: number }>>(
-      (acc, p) => {
-        if (!acc[p.aluno_id]) acc[p.aluno_id] = { total: 0, concluidos: 0, soma: 0 }
-        acc[p.aluno_id].total++
-        if (p.concluido) acc[p.aluno_id].concluidos++
-        acc[p.aluno_id].soma += p.percentagem
-        return acc
-      }, {}
-    )
+    const grouped = prog.reduce<
+      Record<string, { total: number; concluidos: number; soma: number }>
+    >((acc, p) => {
+      if (!acc[p.aluno_id]) acc[p.aluno_id] = { total: 0, concluidos: 0, soma: 0 }
+      acc[p.aluno_id].total++
+      if (p.concluido) acc[p.aluno_id].concluidos++
+      acc[p.aluno_id].soma += p.percentagem
+      return acc
+    }, {})
 
     Object.entries(grouped).forEach(([alunoId, g]) => {
       progressoMap.set(alunoId, {
@@ -89,16 +86,20 @@ export default async function TurmaDetailPage({
   }
 
   // Fetch simulation stats
-  let simMap = new Map<string, { taxa_deteccao: number; total: number }>()
+  const simMap = new Map<string, { taxa_deteccao: number; total: number }>()
   if (alunoIds.length > 0) {
     const { data: simRaw } = await supabase
       .from('v_stats_simulacoes')
       .select('aluno_id, total_simulacoes, taxa_deteccao')
       .in('aluno_id', alunoIds)
 
-    const sims = simRaw as { aluno_id: string; total_simulacoes: number; taxa_deteccao: number }[] ?? []
+    const sims =
+      (simRaw as { aluno_id: string; total_simulacoes: number; taxa_deteccao: number }[]) ?? []
     sims.forEach((s) => {
-      simMap.set(s.aluno_id, { taxa_deteccao: Math.round(s.taxa_deteccao), total: s.total_simulacoes })
+      simMap.set(s.aluno_id, {
+        taxa_deteccao: Math.round(s.taxa_deteccao),
+        total: s.total_simulacoes,
+      })
     })
   }
 
@@ -138,9 +139,7 @@ export default async function TurmaDetailPage({
             <Users className="h-4 w-4 text-blue-600" />
             Alunos inscritos
           </CardTitle>
-          <CardDescription>
-            Progresso e desempenho de cada aluno nesta turma
-          </CardDescription>
+          <CardDescription>Progresso e desempenho de cada aluno nesta turma</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           {alunos.length === 0 ? (
@@ -157,10 +156,17 @@ export default async function TurmaDetailPage({
                 const prog = progressoMap.get(aluno.aluno_id)
                 const sim = simMap.get(aluno.aluno_id)
                 const initials = (aluno.perfis?.nome_completo ?? '?')
-                  .split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+                  .split(' ')
+                  .map((n) => n[0])
+                  .slice(0, 2)
+                  .join('')
+                  .toUpperCase()
 
                 return (
-                  <div key={aluno.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors">
+                  <div
+                    key={aluno.id}
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors"
+                  >
                     {/* Avatar */}
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
                       {initials}
@@ -194,13 +200,15 @@ export default async function TurmaDetailPage({
                       </div>
                       {sim && sim.total > 0 && (
                         <div className="text-center">
-                          <p className={`text-sm font-bold ${
-                            sim.taxa_deteccao >= 70
-                              ? 'text-green-600'
-                              : sim.taxa_deteccao >= 40
-                              ? 'text-yellow-600'
-                              : 'text-red-600'
-                          }`}>
+                          <p
+                            className={`text-sm font-bold ${
+                              sim.taxa_deteccao >= 70
+                                ? 'text-green-600'
+                                : sim.taxa_deteccao >= 40
+                                  ? 'text-yellow-600'
+                                  : 'text-red-600'
+                            }`}
+                          >
                             {sim.taxa_deteccao}%
                           </p>
                           <p className="text-xs text-slate-400">phishing</p>

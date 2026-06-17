@@ -4,11 +4,7 @@ import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { type PapelUtilizador } from '@/lib/types/database.types'
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
 
   const {
@@ -25,7 +21,11 @@ export default async function DashboardLayout({
     .eq('id', user.id)
     .single()
 
-  const perfil = perfilRaw as { nome_completo: string; papel: PapelUtilizador; email: string } | null
+  const perfil = perfilRaw as {
+    nome_completo: string
+    papel: PapelUtilizador
+    email: string
+  } | null
 
   const papel: PapelUtilizador = perfil?.papel ?? 'aluno'
   const nomeCompleto: string = perfil?.nome_completo ?? 'Utilizador'
@@ -45,15 +45,18 @@ export default async function DashboardLayout({
     .order('criado_em', { ascending: false })
     .limit(10)
 
-  const notificacoes = (notificacoesRaw as {
-    id: string
-    titulo: string
-    mensagem: string
-    lida: boolean
-    tipo: string
-    url_destino: string | null
-    criado_em: string
-  }[] | null) ?? []
+  const notificacoes =
+    (notificacoesRaw as
+      | {
+          id: string
+          titulo: string
+          mensagem: string
+          lida: boolean
+          tipo: string
+          url_destino: string | null
+          criado_em: string
+        }[]
+      | null) ?? []
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
@@ -68,9 +71,7 @@ export default async function DashboardLayout({
           notificacoesNaoLidas={notificacoesNaoLidas ?? 0}
           notificacoes={notificacoes}
         />
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
   )

@@ -31,8 +31,10 @@ export function AtribuirModulo({ moduloId, turmas, turmasAtribuidas }: AtribuirM
         .eq('modulo_id', moduloId)
     } else {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase.from('turma_modulos') as any)
-        .insert({ turma_id: turmaId, modulo_id: moduloId })
+      await (supabase.from('turma_modulos') as any).insert({
+        turma_id: turmaId,
+        modulo_id: moduloId,
+      })
     }
 
     setLoading(null)
@@ -44,12 +46,7 @@ export function AtribuirModulo({ moduloId, turmas, turmasAtribuidas }: AtribuirM
 
   return (
     <div className="relative">
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() => setOpen((o) => !o)}
-        className="text-xs"
-      >
+      <Button size="sm" variant="outline" onClick={() => setOpen((o) => !o)} className="text-xs">
         <Plus className="h-3 w-3" />
         Atribuir
       </Button>

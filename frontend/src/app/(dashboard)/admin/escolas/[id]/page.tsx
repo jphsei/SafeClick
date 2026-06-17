@@ -68,7 +68,9 @@ export default async function AdminEscolaDetailPage({
   // ── 2. Turmas desta escola (com info do professor) ────────────
   const { data: turmasRaw } = await supabase
     .from('turmas')
-    .select('id, nome, descricao, ano_letivo, ativo, perfis!turmas_professor_id_fkey(nome_completo, email)')
+    .select(
+      'id, nome, descricao, ano_letivo, ativo, perfis!turmas_professor_id_fkey(nome_completo, email)',
+    )
     .eq('escola_id', id)
     .order('ano_letivo', { ascending: false })
     .order('nome')
@@ -120,7 +122,9 @@ export default async function AdminEscolaDetailPage({
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-2xl font-bold text-slate-900">{escola.nome}</h1>
                 {!escola.ativo && (
-                  <span className="text-xs bg-red-100 text-red-600 rounded px-2 py-0.5">Inativa</span>
+                  <span className="text-xs bg-red-100 text-red-600 rounded px-2 py-0.5">
+                    Inativa
+                  </span>
                 )}
               </div>
               <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
@@ -203,7 +207,9 @@ export default async function AdminEscolaDetailPage({
                       <p className="text-sm font-medium text-slate-900 truncate flex items-center gap-2">
                         {turma.nome}
                         {!turma.ativo && (
-                          <span className="text-xs bg-red-100 text-red-600 rounded px-1.5 py-0.5">Inativa</span>
+                          <span className="text-xs bg-red-100 text-red-600 rounded px-1.5 py-0.5">
+                            Inativa
+                          </span>
                         )}
                       </p>
                       <p className="text-xs text-slate-400 truncate">
@@ -229,20 +235,28 @@ export default async function AdminEscolaDetailPage({
                           const aluno = ta.perfis
                           if (!aluno) return null
                           const initials = aluno.nome_completo
-                            .split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+                            .split(' ')
+                            .map((n) => n[0])
+                            .slice(0, 2)
+                            .join('')
+                            .toUpperCase()
                           return (
                             <li key={ta.id} className="flex items-center gap-3 py-2">
                               <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
                                 {initials}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm text-slate-900 truncate">{aluno.nome_completo}</p>
+                                <p className="text-sm text-slate-900 truncate">
+                                  {aluno.nome_completo}
+                                </p>
                                 <p className="text-xs text-slate-400 truncate">
                                   {aluno.email}
                                   {aluno.numero_aluno && ` · Nº ${aluno.numero_aluno}`}
                                 </p>
                               </div>
-                              <span className="text-xs text-slate-400 flex-shrink-0">{aluno.pontos_total} pts</span>
+                              <span className="text-xs text-slate-400 flex-shrink-0">
+                                {aluno.pontos_total} pts
+                              </span>
                             </li>
                           )
                         })}

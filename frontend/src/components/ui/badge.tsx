@@ -7,48 +7,33 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          'border-transparent bg-blue-600 text-white hover:bg-blue-700',
-        secondary:
-          'border-transparent bg-slate-100 text-slate-900 hover:bg-slate-200',
-        outline:
-          'text-slate-700 border-slate-300',
-        destructive:
-          'border-transparent bg-red-100 text-red-700 hover:bg-red-200',
-        success:
-          'border-transparent bg-green-100 text-green-700 hover:bg-green-200',
-        warning:
-          'border-transparent bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
+        default: 'border-transparent bg-blue-600 text-white hover:bg-blue-700',
+        secondary: 'border-transparent bg-slate-100 text-slate-900 hover:bg-slate-200',
+        outline: 'text-slate-700 border-slate-300',
+        destructive: 'border-transparent bg-red-100 text-red-700 hover:bg-red-200',
+        success: 'border-transparent bg-green-100 text-green-700 hover:bg-green-200',
+        warning: 'border-transparent bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
         // Difficulty levels
-        basico:
-          'border-transparent bg-green-100 text-green-700',
-        intermedio:
-          'border-transparent bg-yellow-100 text-yellow-700',
-        avancado:
-          'border-transparent bg-red-100 text-red-700',
+        basico: 'border-transparent bg-green-100 text-green-700',
+        intermedio: 'border-transparent bg-yellow-100 text-yellow-700',
+        avancado: 'border-transparent bg-red-100 text-red-700',
         // Status
-        publicado:
-          'border-transparent bg-blue-100 text-blue-700',
-        rascunho:
-          'border-transparent bg-slate-100 text-slate-600',
-        arquivado:
-          'border-transparent bg-slate-200 text-slate-500',
+        publicado: 'border-transparent bg-blue-100 text-blue-700',
+        rascunho: 'border-transparent bg-slate-100 text-slate-600',
+        arquivado: 'border-transparent bg-slate-200 text-slate-500',
       },
     },
     defaultVariants: {
       variant: 'default',
     },
-  }
+  },
 )
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+  extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
-  return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
-  )
+  return <div className={cn(badgeVariants({ variant }), className)} {...props} />
 }
 
 export { Badge, badgeVariants }

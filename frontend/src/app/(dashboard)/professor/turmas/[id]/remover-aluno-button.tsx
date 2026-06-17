@@ -28,10 +28,7 @@ export function RemoverAlunoButton({ turmaAlunoId, nomeAluno }: RemoverAlunoButt
 
   async function handleRemover() {
     setLoading(true)
-    await supabase
-      .from('turma_alunos')
-      .update({ ativo: false })
-      .eq('id', turmaAlunoId)
+    await supabase.from('turma_alunos').update({ ativo: false }).eq('id', turmaAlunoId)
 
     setLoading(false)
     // router.refresh() re-corre os Server Components da rota actual
@@ -59,11 +56,15 @@ export function RemoverAlunoButton({ turmaAlunoId, nomeAluno }: RemoverAlunoButt
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmar ação</AlertDialogTitle>
           <AlertDialogDescription>
-            {nomeAluno
-              ? <>Tens a certeza que queres remover <span className="font-medium text-slate-900">{nomeAluno}</span> da turma?</>
-              : 'Tens a certeza que queres remover este aluno da turma?'
-            }
-            {' '}O aluno deixa de ter acesso aos materiais da turma, mas a conta dele mantém-se.
+            {nomeAluno ? (
+              <>
+                Tens a certeza que queres remover{' '}
+                <span className="font-medium text-slate-900">{nomeAluno}</span> da turma?
+              </>
+            ) : (
+              'Tens a certeza que queres remover este aluno da turma?'
+            )}{' '}
+            O aluno deixa de ter acesso aos materiais da turma, mas a conta dele mantém-se.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

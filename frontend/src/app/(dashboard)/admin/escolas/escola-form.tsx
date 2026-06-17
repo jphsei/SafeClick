@@ -31,23 +31,21 @@ interface Escola {
 interface EscolaFormProps {
   /** Se passado, o form abre em modo "editar". Caso contrário, modo "criar". */
   escola?: Escola
-  /** Renderiza o trigger pequeno (ícone só) para uso em tabelas. */
-  triggerVariant?: 'default' | 'icon'
 }
 
-export function EscolaForm({ escola, triggerVariant = 'default' }: EscolaFormProps) {
+export function EscolaForm({ escola }: EscolaFormProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const [erro, setErro] = useState<string | null>(null)
 
   // Estado controlado dos campos (pré-preenchidos no modo editar)
-  const [nome, setNome]                 = useState(escola?.nome ?? '')
-  const [morada, setMorada]             = useState(escola?.morada ?? '')
-  const [cidade, setCidade]             = useState(escola?.cidade ?? '')
+  const [nome, setNome] = useState(escola?.nome ?? '')
+  const [morada, setMorada] = useState(escola?.morada ?? '')
+  const [cidade, setCidade] = useState(escola?.cidade ?? '')
   const [codigoPostal, setCodigoPostal] = useState(escola?.codigo_postal ?? '')
-  const [telefone, setTelefone]         = useState(escola?.telefone ?? '')
-  const [email, setEmail]               = useState(escola?.email ?? '')
+  const [telefone, setTelefone] = useState(escola?.telefone ?? '')
+  const [email, setEmail] = useState(escola?.email ?? '')
 
   const modoEditar = !!escola
 
@@ -63,7 +61,7 @@ export function EscolaForm({ escola, triggerVariant = 'default' }: EscolaFormPro
     setCodigoPostal(escola?.codigo_postal ?? '')
     setTelefone(escola?.telefone ?? '')
     setEmail(escola?.email ?? '')
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   function handleSubmit(e: React.FormEvent) {
@@ -94,8 +92,12 @@ export function EscolaForm({ escola, triggerVariant = 'default' }: EscolaFormPro
 
       // Reset do estado se foi criação
       if (!modoEditar) {
-        setNome(''); setMorada(''); setCidade('')
-        setCodigoPostal(''); setTelefone(''); setEmail('')
+        setNome('')
+        setMorada('')
+        setCidade('')
+        setCodigoPostal('')
+        setTelefone('')
+        setEmail('')
       }
     })
   }
@@ -160,20 +162,12 @@ export function EscolaForm({ escola, triggerVariant = 'default' }: EscolaFormPro
 
             <div className="sm:col-span-2 space-y-1.5">
               <Label htmlFor="morada">Morada</Label>
-              <Input
-                id="morada"
-                value={morada}
-                onChange={(e) => setMorada(e.target.value)}
-              />
+              <Input id="morada" value={morada} onChange={(e) => setMorada(e.target.value)} />
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="cidade">Cidade</Label>
-              <Input
-                id="cidade"
-                value={cidade}
-                onChange={(e) => setCidade(e.target.value)}
-              />
+              <Input id="cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} />
             </div>
 
             <div className="space-y-1.5">
@@ -200,13 +194,19 @@ export function EscolaForm({ escola, triggerVariant = 'default' }: EscolaFormPro
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">Cancelar</Button>
+              <Button type="button" variant="outline">
+                Cancelar
+              </Button>
             </DialogClose>
             <Button type="submit" disabled={pending || !nome.trim()}>
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}
               {pending
-                ? (modoEditar ? 'A guardar...' : 'A criar...')
-                : (modoEditar ? 'Guardar' : 'Criar escola')}
+                ? modoEditar
+                  ? 'A guardar...'
+                  : 'A criar...'
+                : modoEditar
+                  ? 'Guardar'
+                  : 'Criar escola'}
             </Button>
           </DialogFooter>
         </form>

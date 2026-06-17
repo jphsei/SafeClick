@@ -41,7 +41,9 @@ export default async function AdminUtilizadoresPage() {
 
   const { data: utilizadoresRaw } = await supabase
     .from('perfis')
-    .select('id, nome_completo, email, papel, pontos_total, ativo, criado_em, escola_id, numero_aluno, escolas(nome)')
+    .select(
+      'id, nome_completo, email, papel, pontos_total, ativo, criado_em, escola_id, numero_aluno, escolas(nome)',
+    )
     .order('criado_em', { ascending: false })
 
   const utilizadores = (utilizadoresRaw as UtilizadorRow[] | null) ?? []
@@ -55,10 +57,10 @@ export default async function AdminUtilizadoresPage() {
 
   const escolas = (escolasRaw as { id: string; nome: string }[] | null) ?? []
 
-  const counts = utilizadores.reduce<Record<string, number>>(
-    (acc, u) => { acc[u.papel] = (acc[u.papel] ?? 0) + 1; return acc },
-    {}
-  )
+  const counts = utilizadores.reduce<Record<string, number>>((acc, u) => {
+    acc[u.papel] = (acc[u.papel] ?? 0) + 1
+    return acc
+  }, {})
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -66,7 +68,8 @@ export default async function AdminUtilizadoresPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Utilizadores</h1>
           <p className="text-slate-500 mt-1">
-            {utilizadores.length} utilizador{utilizadores.length !== 1 ? 'es' : ''} registado{utilizadores.length !== 1 ? 's' : ''}
+            {utilizadores.length} utilizador{utilizadores.length !== 1 ? 'es' : ''} registado
+            {utilizadores.length !== 1 ? 's' : ''}
           </p>
         </div>
         <UtilizadorForm escolas={escolas} />
@@ -79,12 +82,17 @@ export default async function AdminUtilizadoresPage() {
           return (
             <Card key={papel}>
               <CardContent className="flex items-center gap-3 pt-5">
-                <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${papelColors[papel].split(' ')[0]}`}>
+                <div
+                  className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${papelColors[papel].split(' ')[0]}`}
+                >
                   <Icon className={`h-5 w-5 ${papelColors[papel].split(' ')[1]}`} />
                 </div>
                 <div>
                   <p className="text-xl font-bold text-slate-900">{counts[papel] ?? 0}</p>
-                  <p className="text-xs text-slate-500">{papelLabels[papel]}{(counts[papel] ?? 0) !== 1 ? 'es' : ''}</p>
+                  <p className="text-xs text-slate-500">
+                    {papelLabels[papel]}
+                    {(counts[papel] ?? 0) !== 1 ? 'es' : ''}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -108,18 +116,30 @@ export default async function AdminUtilizadoresPage() {
               {utilizadores.map((u) => {
                 const PapelIcon = papelIcons[u.papel]
                 return (
-                  <div key={u.id} className="flex items-center gap-4 px-6 py-3 hover:bg-slate-50 transition-colors">
+                  <div
+                    key={u.id}
+                    className="flex items-center gap-4 px-6 py-3 hover:bg-slate-50 transition-colors"
+                  >
                     <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
-                      {u.nome_completo.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                      {u.nome_completo
+                        .split(' ')
+                        .map((n) => n[0])
+                        .slice(0, 2)
+                        .join('')
+                        .toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-900 truncate flex items-center gap-2">
                         {u.nome_completo}
                         {!u.ativo && (
-                          <span className="text-xs bg-red-100 text-red-600 rounded px-1.5 py-0.5">Inativo</span>
+                          <span className="text-xs bg-red-100 text-red-600 rounded px-1.5 py-0.5">
+                            Inativo
+                          </span>
                         )}
                         {u.id === user.id && (
-                          <span className="text-xs bg-slate-100 text-slate-500 rounded px-1.5 py-0.5">Tu</span>
+                          <span className="text-xs bg-slate-100 text-slate-500 rounded px-1.5 py-0.5">
+                            Tu
+                          </span>
                         )}
                       </p>
                       <p className="text-xs text-slate-400 truncate">
@@ -131,7 +151,9 @@ export default async function AdminUtilizadoresPage() {
                       {u.papel === 'aluno' && (
                         <span className="text-xs text-slate-500">{u.pontos_total} pts</span>
                       )}
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${papelColors[u.papel]}`}>
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${papelColors[u.papel]}`}
+                      >
                         <PapelIcon className="h-3 w-3" />
                         {papelLabels[u.papel]}
                       </span>
@@ -143,12 +165,12 @@ export default async function AdminUtilizadoresPage() {
                           <>
                             <UtilizadorForm
                               utilizador={{
-                                id:            u.id,
-                                email:         u.email,
+                                id: u.id,
+                                email: u.email,
                                 nome_completo: u.nome_completo,
-                                papel:         u.papel,
-                                escola_id:     u.escola_id,
-                                numero_aluno:  u.numero_aluno,
+                                papel: u.papel,
+                                escola_id: u.escola_id,
+                                numero_aluno: u.numero_aluno,
                               }}
                               escolas={escolas}
                             />

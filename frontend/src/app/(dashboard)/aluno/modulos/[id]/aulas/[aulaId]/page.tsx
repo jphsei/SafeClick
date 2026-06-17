@@ -39,12 +39,10 @@ export default async function AulaPage({
     .eq('ativo', true)
     .order('ordem')
 
-  const todasAulas =
-    (todasAulasRaw as { id: string; titulo: string; ordem: number }[]) ?? []
+  const todasAulas = (todasAulasRaw as { id: string; titulo: string; ordem: number }[]) ?? []
   const currentIndex = todasAulas.findIndex((a) => a.id === aulaId)
   const prevAula = currentIndex > 0 ? todasAulas[currentIndex - 1] : null
-  const nextAula =
-    currentIndex < todasAulas.length - 1 ? todasAulas[currentIndex + 1] : null
+  const nextAula = currentIndex < todasAulas.length - 1 ? todasAulas[currentIndex + 1] : null
 
   const { data: moduloRaw } = await supabase
     .from('modulos')
@@ -52,8 +50,10 @@ export default async function AulaPage({
     .eq('id', id)
     .single()
 
-  const moduloTitulo = (moduloRaw as { titulo: string; pontos_conclusao: number } | null)?.titulo ?? 'Módulo'
-  const pontosConclusao = (moduloRaw as { titulo: string; pontos_conclusao: number } | null)?.pontos_conclusao ?? 0
+  const moduloTitulo =
+    (moduloRaw as { titulo: string; pontos_conclusao: number } | null)?.titulo ?? 'Módulo'
+  const pontosConclusao =
+    (moduloRaw as { titulo: string; pontos_conclusao: number } | null)?.pontos_conclusao ?? 0
 
   // Check if lesson is already completed
   const { data: progressoRaw } = await supabase
@@ -63,7 +63,8 @@ export default async function AulaPage({
     .eq('modulo_id', id)
     .maybeSingle()
 
-  const aulasConcluidas = (progressoRaw as { aulas_concluidas: string[] } | null)?.aulas_concluidas ?? []
+  const aulasConcluidas =
+    (progressoRaw as { aulas_concluidas: string[] } | null)?.aulas_concluidas ?? []
   const jaConcluida = aulasConcluidas.includes(aulaId)
   const totalAulas = todasAulas.length
 
@@ -90,7 +91,9 @@ export default async function AulaPage({
         <div>
           <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
             <BookOpen className="h-4 w-4" />
-            <span>Aula {aula.ordem} de {totalAulas}</span>
+            <span>
+              Aula {aula.ordem} de {totalAulas}
+            </span>
             {aula.duracao_minutos && (
               <>
                 <span>·</span>
@@ -114,16 +117,12 @@ export default async function AulaPage({
         <CardContent className="pt-6">
           {aula.conteudo ? (
             <div className="prose prose-slate max-w-none">
-              <p className="whitespace-pre-wrap text-slate-700 leading-relaxed">
-                {aula.conteudo}
-              </p>
+              <p className="whitespace-pre-wrap text-slate-700 leading-relaxed">{aula.conteudo}</p>
             </div>
           ) : (
             <div className="text-center py-10">
               <BookOpen className="h-10 w-10 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">
-                O conteúdo desta aula ainda não está disponível.
-              </p>
+              <p className="text-slate-500">O conteúdo desta aula ainda não está disponível.</p>
             </div>
           )}
         </CardContent>
@@ -136,7 +135,9 @@ export default async function AulaPage({
           totalAulas={totalAulas}
           aulasConcluidas={aulasConcluidas}
           pontosConclusao={pontosConclusao}
-          nextAulaHref={nextAula ? `/aluno/modulos/${id}/aulas/${nextAula.id}` : `/aluno/modulos/${id}`}
+          nextAulaHref={
+            nextAula ? `/aluno/modulos/${id}/aulas/${nextAula.id}` : `/aluno/modulos/${id}`
+          }
         />
       )}
 

@@ -55,9 +55,9 @@ export default function HomePage() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-300">
-            Uma plataforma interativa de aprendizagem em cibersegurança desenvolvida para
-            alunos e professores do ensino básico e secundário em Portugal. Protege-te
-            online com conhecimento!
+            Uma plataforma interativa de aprendizagem em cibersegurança desenvolvida para alunos e
+            professores do ensino básico e secundário em Portugal. Protege-te online com
+            conhecimento!
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -96,12 +96,10 @@ export default function HomePage() {
       <section id="sobre" className="py-24 bg-slate-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
-              O que oferecemos
-            </h2>
+            <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">O que oferecemos</h2>
             <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-              Ferramentas e conteúdos educativos para desenvolver competências em cibersegurança
-              de forma divertida e eficaz.
+              Ferramentas e conteúdos educativos para desenvolver competências em cibersegurança de
+              forma divertida e eficaz.
             </p>
           </div>
 
@@ -111,22 +109,18 @@ export default function HomePage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 mb-6">
                 <BookOpen className="h-6 w-6 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-3">
-                Módulos de aprendizagem
-              </h3>
+              <h3 className="text-xl font-semibold text-slate-900 mb-3">Módulos de aprendizagem</h3>
               <p className="text-slate-600 leading-relaxed">
-                Conteúdos estruturados sobre segurança de passwords, phishing, redes sociais
-                e privacidade online. Do básico ao avançado.
+                Conteúdos estruturados sobre segurança de passwords, phishing, redes sociais e
+                privacidade online. Do básico ao avançado.
               </p>
               <ul className="mt-4 space-y-2">
-                {['Aulas interativas', 'Quizzes de avaliação', 'Progresso guardado'].map(
-                  (item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm text-slate-500">
-                      <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      {item}
-                    </li>
-                  )
-                )}
+                {['Aulas interativas', 'Quizzes de avaliação', 'Progresso guardado'].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm text-slate-500">
+                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -135,9 +129,7 @@ export default function HomePage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-100 mb-6">
                 <ShieldAlert className="h-6 w-6 text-cyan-600" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-3">
-                Simulações de phishing
-              </h3>
+              <h3 className="text-xl font-semibold text-slate-900 mb-3">Simulações de phishing</h3>
               <p className="text-slate-600 leading-relaxed">
                 Pratica a identificação de e-mails e websites fraudulentos em ambiente seguro.
                 Aprende a reconhecer tentativas de engano.
@@ -157,12 +149,10 @@ export default function HomePage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100 mb-6">
                 <Award className="h-6 w-6 text-yellow-600" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-3">
-                Badges e conquistas
-              </h3>
+              <h3 className="text-xl font-semibold text-slate-900 mb-3">Badges e conquistas</h3>
               <p className="text-slate-600 leading-relaxed">
-                Ganha pontos e desbloqueias emblemas à medida que aprendes. Compara o teu
-                desempenho com os colegas no leaderboard.
+                Ganha pontos e desbloqueias emblemas à medida que aprendes. Compara o teu desempenho
+                com os colegas no leaderboard.
               </p>
               <ul className="mt-4 space-y-2">
                 {['Sistema de pontos', 'Emblemas exclusivos', 'Ranking global'].map((item) => (
@@ -216,10 +206,7 @@ export default function HomePage() {
                   { label: 'Recursos', value: 'Aceder', icon: '📚' },
                   { label: 'Relatórios', value: 'Exportar', icon: '📋' },
                 ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="rounded-xl bg-white/10 p-4 backdrop-blur-sm"
-                  >
+                  <div key={item.label} className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
                     <div className="text-2xl mb-2">{item.icon}</div>
                     <div className="text-sm font-medium text-white/80">{item.label}</div>
                     <div className="text-lg font-bold">{item.value}</div>
@@ -234,9 +221,7 @@ export default function HomePage() {
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-r from-blue-600 to-cyan-600">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white sm:text-4xl mb-6">
-            Pronto para começar?
-          </h2>
+          <h2 className="text-3xl font-bold text-white sm:text-4xl mb-6">Pronto para começar?</h2>
           <p className="text-lg text-blue-100 mb-10">
             Junta-te à comunidade SafeClick e aprende a protegeres-te no mundo digital.
           </p>
@@ -261,7 +246,8 @@ export default function HomePage() {
               <span className="font-bold text-white">SafeClick</span>
             </div>
             <p className="text-sm text-slate-500">
-              &copy; {new Date().getFullYear()} SafeClick &mdash; Projeto académico &mdash; Universidade Lusófona CUP
+              &copy; {new Date().getFullYear()} SafeClick &mdash; Projeto académico &mdash;
+              Universidade Lusófona CUP
             </p>
           </div>
         </div>

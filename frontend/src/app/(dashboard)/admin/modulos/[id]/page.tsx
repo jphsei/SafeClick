@@ -52,9 +52,7 @@ export default async function AdminModuloAulasPage({
   const ativas = aulas.filter((a) => a.ativo).length
 
   // Sugerir a próxima ordem (último + 1)
-  const proximaOrdem = aulas.length > 0
-    ? Math.max(...aulas.map((a) => a.ordem)) + 1
-    : 1
+  const proximaOrdem = aulas.length > 0 ? Math.max(...aulas.map((a) => a.ordem)) + 1 : 1
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -71,7 +69,8 @@ export default async function AdminModuloAulasPage({
           <h1 className="text-2xl font-bold text-slate-900">{modulo.titulo}</h1>
           <p className="text-slate-500 mt-1">
             {ativas} aula{ativas !== 1 ? 's' : ''} ativa{ativas !== 1 ? 's' : ''}
-            {aulas.length > ativas && ` · ${aulas.length - ativas} inativa${aulas.length - ativas !== 1 ? 's' : ''}`}
+            {aulas.length > ativas &&
+              ` · ${aulas.length - ativas} inativa${aulas.length - ativas !== 1 ? 's' : ''}`}
           </p>
         </div>
         <AulaForm moduloId={id} proximaOrdem={proximaOrdem} />
@@ -107,7 +106,9 @@ export default async function AdminModuloAulasPage({
                     <p className="text-sm font-medium text-slate-900 truncate flex items-center gap-2">
                       {aula.titulo}
                       {!aula.ativo && (
-                        <span className="text-xs bg-red-100 text-red-600 rounded px-1.5 py-0.5">Inativa</span>
+                        <span className="text-xs bg-red-100 text-red-600 rounded px-1.5 py-0.5">
+                          Inativa
+                        </span>
                       )}
                     </p>
                     <div className="flex items-center gap-3 mt-0.5 flex-wrap">

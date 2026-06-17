@@ -10,11 +10,11 @@ import { Label } from '@/components/ui/label'
 import { type TipoRecurso } from '@/lib/types/database.types'
 
 const TIPOS: { value: TipoRecurso; label: string }[] = [
-  { value: 'plano_aula',   label: 'Plano de Aula' },
+  { value: 'plano_aula', label: 'Plano de Aula' },
   { value: 'apresentacao', label: 'Apresentação' },
-  { value: 'guia',         label: 'Guia' },
-  { value: 'video',        label: 'Vídeo' },
-  { value: 'documento',    label: 'Documento' },
+  { value: 'guia', label: 'Guia' },
+  { value: 'video', label: 'Vídeo' },
+  { value: 'documento', label: 'Documento' },
 ]
 
 interface Props {
@@ -26,15 +26,15 @@ export function NovoRecursoForm({ professorId, modulos }: Props) {
   const router = useRouter()
   const supabase = createClient()
 
-  const [open, setOpen]         = useState(false)
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState<string | null>(null)
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const [titulo, setTitulo]         = useState('')
-  const [descricao, setDescricao]   = useState('')
-  const [tipo, setTipo]             = useState<TipoRecurso>('documento')
-  const [url, setUrl]               = useState('')
-  const [moduloId, setModuloId]     = useState('')
+  const [titulo, setTitulo] = useState('')
+  const [descricao, setDescricao] = useState('')
+  const [tipo, setTipo] = useState<TipoRecurso>('documento')
+  const [url, setUrl] = useState('')
+  const [moduloId, setModuloId] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -45,13 +45,13 @@ export function NovoRecursoForm({ professorId, modulos }: Props) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error: err } = await (supabase.from('recursos_pedagogicos') as any).insert({
-      titulo:       titulo.trim(),
-      descricao:    descricao.trim() || null,
+      titulo: titulo.trim(),
+      descricao: descricao.trim() || null,
       tipo,
       url_ficheiro: url.trim() || null,
-      modulo_id:    moduloId || null,
-      criado_por:   professorId,
-      visivel:      true,
+      modulo_id: moduloId || null,
+      criado_por: professorId,
+      visivel: true,
     })
 
     setLoading(false)
@@ -61,8 +61,11 @@ export function NovoRecursoForm({ professorId, modulos }: Props) {
       return
     }
 
-    setTitulo(''); setDescricao(''); setTipo('documento')
-    setUrl(''); setModuloId('')
+    setTitulo('')
+    setDescricao('')
+    setTipo('documento')
+    setUrl('')
+    setModuloId('')
     setOpen(false)
     router.refresh()
   }
@@ -81,7 +84,10 @@ export function NovoRecursoForm({ professorId, modulos }: Props) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-slate-900">Novo recurso</h3>
         <button
-          onClick={() => { setOpen(false); setError(null) }}
+          onClick={() => {
+            setOpen(false)
+            setError(null)
+          }}
           className="text-slate-400 hover:text-slate-600 transition-colors"
         >
           <X className="h-5 w-5" />
@@ -116,7 +122,9 @@ export function NovoRecursoForm({ professorId, modulos }: Props) {
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {TIPOS.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
               ))}
             </select>
           </div>
@@ -154,7 +162,9 @@ export function NovoRecursoForm({ professorId, modulos }: Props) {
             >
               <option value="">— Nenhum —</option>
               {modulos.map((m) => (
-                <option key={m.id} value={m.id}>{m.titulo}</option>
+                <option key={m.id} value={m.id}>
+                  {m.titulo}
+                </option>
               ))}
             </select>
           </div>
@@ -168,7 +178,10 @@ export function NovoRecursoForm({ professorId, modulos }: Props) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => { setOpen(false); setError(null) }}
+            onClick={() => {
+              setOpen(false)
+              setError(null)
+            }}
           >
             Cancelar
           </Button>

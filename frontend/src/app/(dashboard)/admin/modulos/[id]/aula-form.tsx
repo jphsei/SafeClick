@@ -43,12 +43,14 @@ export function AulaForm({ moduloId, aula, proximaOrdem }: Props) {
 
   const modoEditar = !!aula
 
-  const [titulo, setTitulo]                 = useState(aula?.titulo ?? '')
-  const [conteudo, setConteudo]             = useState(aula?.conteudo ?? '')
-  const [videoUrl, setVideoUrl]             = useState(aula?.video_url ?? '')
-  const [ordem, setOrdem]                   = useState<string>(String(aula?.ordem ?? proximaOrdem ?? 0))
-  const [duracaoMinutos, setDuracaoMinutos] = useState<string>(aula?.duracao_minutos != null ? String(aula.duracao_minutos) : '')
-  const [pontos, setPontos]                 = useState<string>(String(aula?.pontos ?? 5))
+  const [titulo, setTitulo] = useState(aula?.titulo ?? '')
+  const [conteudo, setConteudo] = useState(aula?.conteudo ?? '')
+  const [videoUrl, setVideoUrl] = useState(aula?.video_url ?? '')
+  const [ordem, setOrdem] = useState<string>(String(aula?.ordem ?? proximaOrdem ?? 0))
+  const [duracaoMinutos, setDuracaoMinutos] = useState<string>(
+    aula?.duracao_minutos != null ? String(aula.duracao_minutos) : '',
+  )
+  const [pontos, setPontos] = useState<string>(String(aula?.pontos ?? 5))
 
   useEffect(() => {
     if (!open) return
@@ -59,7 +61,7 @@ export function AulaForm({ moduloId, aula, proximaOrdem }: Props) {
     setOrdem(String(aula?.ordem ?? proximaOrdem ?? 0))
     setDuracaoMinutos(aula?.duracao_minutos != null ? String(aula.duracao_minutos) : '')
     setPontos(String(aula?.pontos ?? 5))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   function handleSubmit(e: React.FormEvent) {
@@ -70,7 +72,7 @@ export function AulaForm({ moduloId, aula, proximaOrdem }: Props) {
       const payload = {
         titulo,
         conteudo,
-        video_url:       videoUrl,
+        video_url: videoUrl,
         ordem,
         duracao_minutos: duracaoMinutos,
         pontos,
@@ -197,13 +199,19 @@ export function AulaForm({ moduloId, aula, proximaOrdem }: Props) {
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">Cancelar</Button>
+              <Button type="button" variant="outline">
+                Cancelar
+              </Button>
             </DialogClose>
             <Button type="submit" disabled={pending || !titulo.trim()}>
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}
               {pending
-                ? (modoEditar ? 'A guardar...' : 'A criar...')
-                : (modoEditar ? 'Guardar' : 'Criar aula')}
+                ? modoEditar
+                  ? 'A guardar...'
+                  : 'A criar...'
+                : modoEditar
+                  ? 'Guardar'
+                  : 'Criar aula'}
             </Button>
           </DialogFooter>
         </form>

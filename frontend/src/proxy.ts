@@ -51,7 +51,8 @@ export async function proxy(request: NextRequest) {
 
     const papel = (perfilRaw as { papel: string } | null)?.papel
     const url = request.nextUrl.clone()
-    url.pathname = papel === 'professor' ? '/professor' : papel === 'administrador' ? '/admin' : '/aluno'
+    url.pathname =
+      papel === 'professor' ? '/professor' : papel === 'administrador' ? '/admin' : '/aluno'
     return NextResponse.redirect(url)
   }
 
@@ -59,7 +60,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }

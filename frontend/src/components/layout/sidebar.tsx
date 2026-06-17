@@ -54,9 +54,12 @@ const adminNav: NavItem[] = [
 
 function getNavItems(papel: PapelUtilizador): NavItem[] {
   switch (papel) {
-    case 'professor': return professorNav
-    case 'administrador': return adminNav
-    default: return alunoNav
+    case 'professor':
+      return professorNav
+    case 'administrador':
+      return adminNav
+    default:
+      return alunoNav
   }
 }
 
@@ -64,13 +67,7 @@ interface SidebarProps {
   papel: PapelUtilizador
 }
 
-function SidebarContent({
-  papel,
-  onClose,
-}: {
-  papel: PapelUtilizador
-  onClose?: () => void
-}) {
+function SidebarContent({ papel, onClose }: { papel: PapelUtilizador; onClose?: () => void }) {
   const pathname = usePathname()
   const navItems = getNavItems(papel)
 
@@ -88,8 +85,8 @@ function SidebarContent({
               {papel === 'aluno'
                 ? 'Portal do Aluno'
                 : papel === 'professor'
-                ? 'Portal do Professor'
-                : 'Painel de Administração'}
+                  ? 'Portal do Professor'
+                  : 'Painel de Administração'}
             </p>
           </div>
         </div>
@@ -126,7 +123,7 @@ function SidebarContent({
                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-blue-600 text-white'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white',
                   )}
                 >
                   <Icon className="h-4 w-4 flex-shrink-0" />
@@ -140,9 +137,7 @@ function SidebarContent({
 
       {/* Footer */}
       <div className="border-t border-slate-700 px-6 py-4">
-        <p className="text-xs text-slate-500">
-          &copy; {new Date().getFullYear()} SafeClick
-        </p>
+        <p className="text-xs text-slate-500">&copy; {new Date().getFullYear()} SafeClick</p>
       </div>
     </div>
   )
@@ -158,9 +153,17 @@ export function Sidebar({ papel }: SidebarProps) {
     return () => document.removeEventListener('toggle-sidebar', handler)
   }, [])
 
-  // Close on route change
+  // Close on route change.
+  //
+  // Cobre cenários que o `onClick={onClose}` em cada <Link> não cobre:
+  // navegação por back/forward do browser, redirects do servidor e
+  // navegação programática (router.push). Vale o re-render extra para
+  // garantir que o drawer nunca fica preso aberto durante uma transição
+  // de rota. A alternativa idiomática (mover para fora do React) não se
+  // aplica — o trigger é puramente um valor do React Router.
   const pathname = usePathname()
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false)
   }, [pathname])
 
@@ -175,10 +178,7 @@ export function Sidebar({ papel }: SidebarProps) {
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40 flex">
           {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setMobileOpen(false)}
-          />
+          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
           {/* Drawer */}
           <aside className="relative z-50 w-72 flex-shrink-0">
             <SidebarContent papel={papel} onClose={() => setMobileOpen(false)} />

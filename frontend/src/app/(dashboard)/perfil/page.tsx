@@ -45,11 +45,12 @@ export default async function PerfilPage() {
     .eq('utilizador_id', user.id)
     .order('ganho_em', { ascending: false })
 
-  const badges = (badgesRaw as {
-    badge_id: string
-    ganho_em: string
-    badges: { nome: string; icone_url: string | null; descricao: string } | null
-  }[]) ?? []
+  const badges =
+    (badgesRaw as {
+      badge_id: string
+      ganho_em: string
+      badges: { nome: string; icone_url: string | null; descricao: string } | null
+    }[]) ?? []
 
   const { data: tentativasRaw } = await supabase
     .from('tentativas_quiz')
@@ -81,9 +82,9 @@ export default async function PerfilPage() {
         <EditPerfilForm
           perfil={{
             nome_completo: perfil.nome_completo,
-            email:         perfil.email,
-            papel:         perfil.papel,
-            numero_aluno:  perfil.numero_aluno,
+            email: perfil.email,
+            papel: perfil.papel,
+            numero_aluno: perfil.numero_aluno,
           }}
         />
       </div>
@@ -100,7 +101,9 @@ export default async function PerfilPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 flex-wrap">
                 <h2 className="text-xl font-bold text-slate-900">{perfil.nome_completo}</h2>
-                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${papelColors[perfil.papel]}`}>
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${papelColors[perfil.papel]}`}
+                >
                   {papelLabels[perfil.papel]}
                 </span>
               </div>
@@ -194,12 +197,17 @@ export default async function PerfilPage() {
             {badges.length === 0 ? (
               <div className="text-center py-6">
                 <Award className="h-10 w-10 text-slate-200 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">Ainda não tens badges. Completa módulos para ganhar!</p>
+                <p className="text-sm text-slate-500">
+                  Ainda não tens badges. Completa módulos para ganhar!
+                </p>
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {badges.map((ub) => (
-                  <div key={ub.badge_id} className="flex items-center gap-3 rounded-lg border border-slate-100 p-3">
+                  <div
+                    key={ub.badge_id}
+                    className="flex items-center gap-3 rounded-lg border border-slate-100 p-3"
+                  >
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-yellow-50 text-xl">
                       {ub.badges?.icone_url ?? '🏅'}
                     </div>

@@ -1,4 +1,4 @@
-import { Trophy, Medal, Star } from 'lucide-react'
+import { Trophy, Medal } from 'lucide-react'
 import { requireUser } from '@/lib/auth/require-role'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -74,9 +74,7 @@ export default async function LeaderboardPage() {
                   <p className="text-sm font-semibold text-slate-900 truncate">
                     {entry.nome_completo.split(' ')[0]}
                   </p>
-                  <p className="text-xs font-bold text-blue-600 mt-1">
-                    {entry.pontos_total} pts
-                  </p>
+                  <p className="text-xs font-bold text-blue-600 mt-1">{entry.pontos_total} pts</p>
                 </CardContent>
               </Card>
             )
@@ -111,9 +109,7 @@ export default async function LeaderboardPage() {
                       {pos <= 3 ? (
                         <Medal className={`h-5 w-5 mx-auto ${medalColors[pos]}`} />
                       ) : (
-                        <span className="text-sm font-semibold text-slate-400">
-                          {pos}
-                        </span>
+                        <span className="text-sm font-semibold text-slate-400">{pos}</span>
                       )}
                     </div>
 
@@ -127,7 +123,9 @@ export default async function LeaderboardPage() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${isUser ? 'text-blue-700' : 'text-slate-900'}`}>
+                      <p
+                        className={`text-sm font-medium truncate ${isUser ? 'text-blue-700' : 'text-slate-900'}`}
+                      >
                         {entry.nome_completo}
                         {isUser && (
                           <span className="ml-2 text-xs font-normal text-blue-500">(tu)</span>
@@ -146,9 +144,7 @@ export default async function LeaderboardPage() {
                         </span>
                       )}
                       <div className="text-right">
-                        <p className="text-sm font-bold text-slate-900">
-                          {entry.pontos_total}
-                        </p>
+                        <p className="text-sm font-bold text-slate-900">{entry.pontos_total}</p>
                         <p className="text-xs text-slate-400">pts</p>
                       </div>
                     </div>

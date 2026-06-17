@@ -6,22 +6,21 @@ import { adminAction } from '@/lib/auth/admin-action'
 
 // ── Schemas ─────────────────────────────────────────────────────
 
-const emptyToNull = (v: unknown) =>
-  typeof v === 'string' && v.trim() === '' ? null : v
+const emptyToNull = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? null : v)
 
 const baseAulaFields = {
-  titulo:          z.string().trim().min(1, 'O título é obrigatório.').max(200),
-  conteudo:        z.preprocess(emptyToNull, z.string().trim().max(50000).nullable().optional()),
-  video_url:       z.preprocess(
+  titulo: z.string().trim().min(1, 'O título é obrigatório.').max(200),
+  conteudo: z.preprocess(emptyToNull, z.string().trim().max(50000).nullable().optional()),
+  video_url: z.preprocess(
     emptyToNull,
     z.string().trim().url('URL do vídeo inválido.').nullable().optional(),
   ),
-  ordem:           z.coerce.number().int().min(0).max(10000),
+  ordem: z.coerce.number().int().min(0).max(10000),
   duracao_minutos: z.preprocess(
     (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
     z.number().int().min(0).max(10000).nullable().optional(),
   ),
-  pontos:          z.coerce.number().int().min(0).max(1000),
+  pontos: z.coerce.number().int().min(0).max(1000),
 }
 
 const createSchema = z.object({

@@ -6,12 +6,11 @@ import { requireUser } from '@/lib/auth/require-role'
 
 // ── Schemas ─────────────────────────────────────────────────────
 
-const emptyToNull = (v: unknown) =>
-  typeof v === 'string' && v.trim() === '' ? null : v
+const emptyToNull = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? null : v)
 
 const atualizarPerfilSchema = z.object({
   nome_completo: z.string().trim().min(1, 'O nome é obrigatório.').max(200),
-  numero_aluno:  z.preprocess(emptyToNull, z.string().trim().max(50).nullable().optional()),
+  numero_aluno: z.preprocess(emptyToNull, z.string().trim().max(50).nullable().optional()),
 })
 
 type ActionResult = { ok: true } | { ok: false; erro: string }
@@ -39,7 +38,7 @@ export async function atualizarMeuPerfil(rawInput: unknown): Promise<ActionResul
     const { error } = await (supabase.from('perfis') as any)
       .update({
         nome_completo: parsed.data.nome_completo,
-        numero_aluno:  parsed.data.numero_aluno,
+        numero_aluno: parsed.data.numero_aluno,
         atualizado_em: new Date().toISOString(),
       })
       .eq('id', user.id)

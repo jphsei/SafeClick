@@ -44,16 +44,15 @@ export default async function ProfessorModulosPage() {
 
   // Fetch already assigned modules
   const turmaIds = turmas.map((t) => t.id)
-  const { data: atribuidosRaw } = turmaIds.length > 0
-    ? await supabase
-        .from('turma_modulos')
-        .select('turma_id, modulo_id')
-        .in('turma_id', turmaIds)
-    : { data: [] }
+  const { data: atribuidosRaw } =
+    turmaIds.length > 0
+      ? await supabase.from('turma_modulos').select('turma_id, modulo_id').in('turma_id', turmaIds)
+      : { data: [] }
 
   const atribuidos = new Set(
-    (atribuidosRaw as { turma_id: string; modulo_id: string }[] ?? [])
-      .map((a) => `${a.turma_id}:${a.modulo_id}`)
+    ((atribuidosRaw as { turma_id: string; modulo_id: string }[]) ?? []).map(
+      (a) => `${a.turma_id}:${a.modulo_id}`,
+    ),
   )
 
   return (
@@ -61,7 +60,8 @@ export default async function ProfessorModulosPage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Módulos disponíveis</h1>
         <p className="text-slate-500 mt-1">
-          {modulos.length} módulo{modulos.length !== 1 ? 's' : ''} publicado{modulos.length !== 1 ? 's' : ''}.
+          {modulos.length} módulo{modulos.length !== 1 ? 's' : ''} publicado
+          {modulos.length !== 1 ? 's' : ''}.
           {turmas.length === 0 && ' Cria uma turma para poder atribuir módulos.'}
         </p>
       </div>
@@ -76,9 +76,7 @@ export default async function ProfessorModulosPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {modulos.map((modulo) => {
-            const turmasAtribuidas = turmas.filter((t) =>
-              atribuidos.has(`${t.id}:${modulo.id}`)
-            )
+            const turmasAtribuidas = turmas.filter((t) => atribuidos.has(`${t.id}:${modulo.id}`))
 
             return (
               <Card key={modulo.id}>

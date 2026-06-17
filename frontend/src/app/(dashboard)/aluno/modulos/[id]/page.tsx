@@ -13,11 +13,7 @@ const nivelLabels: Record<NivelDificuldade, string> = {
   avancado: 'Avançado',
 }
 
-export default async function ModuloDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function ModuloDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const { user, supabase } = await requireUser()
 
@@ -47,12 +43,13 @@ export default async function ModuloDetailPage({
     .eq('ativo', true)
     .order('ordem')
 
-  const aulas = (aulasRaw as {
-    id: string
-    titulo: string
-    ordem: number
-    duracao_minutos: number | null
-  }[]) ?? []
+  const aulas =
+    (aulasRaw as {
+      id: string
+      titulo: string
+      ordem: number
+      duracao_minutos: number | null
+    }[]) ?? []
 
   const { data: progressoRaw } = await supabase
     .from('progresso_modulo')
@@ -101,9 +98,7 @@ export default async function ModuloDetailPage({
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
-                <Badge variant={modulo.dificuldade}>
-                  {nivelLabels[modulo.dificuldade]}
-                </Badge>
+                <Badge variant={modulo.dificuldade}>{nivelLabels[modulo.dificuldade]}</Badge>
                 {progresso?.concluido && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
                     <CheckCircle className="h-3 w-3" />
@@ -112,9 +107,7 @@ export default async function ModuloDetailPage({
                 )}
               </div>
               <h1 className="text-2xl font-bold text-slate-900">{modulo.titulo}</h1>
-              {modulo.descricao && (
-                <p className="mt-2 text-slate-500">{modulo.descricao}</p>
-              )}
+              {modulo.descricao && <p className="mt-2 text-slate-500">{modulo.descricao}</p>}
               <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
                 {modulo.duracao_minutos && (
                   <span className="flex items-center gap-1">
@@ -134,7 +127,9 @@ export default async function ModuloDetailPage({
           {totalAulas > 0 && (
             <div className="mt-4">
               <div className="flex justify-between text-xs text-slate-500 mb-1">
-                <span>{aulasConcluidas.length} de {totalAulas} aulas</span>
+                <span>
+                  {aulasConcluidas.length} de {totalAulas} aulas
+                </span>
               </div>
               <div className="h-2 w-full rounded-full bg-slate-100">
                 <div
@@ -149,9 +144,7 @@ export default async function ModuloDetailPage({
 
       {/* Lessons */}
       <div>
-        <h2 className="text-lg font-semibold text-slate-900 mb-3">
-          Aulas ({totalAulas})
-        </h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">Aulas ({totalAulas})</h2>
 
         {aulas.length === 0 ? (
           <Card>

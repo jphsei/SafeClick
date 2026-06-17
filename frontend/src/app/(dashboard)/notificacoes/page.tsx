@@ -1,5 +1,14 @@
 import Link from 'next/link'
-import { Bell, BellOff, Info, CheckCircle, AlertTriangle, Trophy, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  BellOff,
+  Info,
+  CheckCircle,
+  AlertTriangle,
+  Trophy,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import { requireUser } from '@/lib/auth/require-role'
 import { Card, CardContent } from '@/components/ui/card'
 import { tempoRelativo } from '@/lib/relative-time'
@@ -8,16 +17,16 @@ import { NotificationsListActions } from './list-actions'
 const PAGE_SIZE = 20
 
 const TIPO_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
-  info:      Info,
-  sucesso:   CheckCircle,
-  aviso:     AlertTriangle,
+  info: Info,
+  sucesso: CheckCircle,
+  aviso: AlertTriangle,
   conquista: Trophy,
 }
 
 const TIPO_COLOR: Record<string, string> = {
-  info:      'text-blue-500 bg-blue-50',
-  sucesso:   'text-green-500 bg-green-50',
-  aviso:     'text-yellow-500 bg-yellow-50',
+  info: 'text-blue-500 bg-blue-50',
+  sucesso: 'text-green-500 bg-green-50',
+  aviso: 'text-yellow-500 bg-yellow-50',
   conquista: 'text-purple-500 bg-purple-50',
 }
 
@@ -68,7 +77,8 @@ export default async function NotificacoesPage({
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Notificações</h1>
           <p className="text-slate-500 mt-1">
-            {total} no total{naoLidas > 0 && ` · ${naoLidas} não lida${naoLidas !== 1 ? 's' : ''} nesta página`}
+            {total} no total
+            {naoLidas > 0 && ` · ${naoLidas} não lida${naoLidas !== 1 ? 's' : ''} nesta página`}
           </p>
         </div>
         {total > 0 && <NotificationsListActions />}
@@ -92,9 +102,7 @@ export default async function NotificacoesPage({
                   const [textColor, bgColor] = colors.split(' ')
 
                   const Wrapper = notif.url_destino ? Link : 'div'
-                  const wrapperProps = notif.url_destino
-                    ? { href: notif.url_destino }
-                    : {}
+                  const wrapperProps = notif.url_destino ? { href: notif.url_destino } : {}
 
                   return (
                     <li key={notif.id}>
@@ -103,12 +111,16 @@ export default async function NotificacoesPage({
                         {...(wrapperProps as any)}
                         className={`flex items-start gap-3 px-5 py-4 transition-colors ${notif.url_destino ? 'hover:bg-slate-50 cursor-pointer' : ''} ${notif.lida ? '' : 'bg-blue-50/40'}`}
                       >
-                        <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${bgColor}`}>
+                        <div
+                          className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${bgColor}`}
+                        >
                           <Icon className={`h-5 w-5 ${textColor}`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className={`text-sm leading-tight ${notif.lida ? 'text-slate-700' : 'font-semibold text-slate-900'}`}>
+                            <p
+                              className={`text-sm leading-tight ${notif.lida ? 'text-slate-700' : 'font-semibold text-slate-900'}`}
+                            >
                               {notif.titulo}
                             </p>
                             {!notif.lida && (
@@ -118,7 +130,9 @@ export default async function NotificacoesPage({
                             )}
                           </div>
                           <p className="text-sm text-slate-500 mt-1">{notif.mensagem}</p>
-                          <p className="text-xs text-slate-400 mt-1.5">{tempoRelativo(notif.criado_em)}</p>
+                          <p className="text-xs text-slate-400 mt-1.5">
+                            {tempoRelativo(notif.criado_em)}
+                          </p>
                         </div>
                       </Wrapper>
                     </li>

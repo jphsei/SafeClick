@@ -45,7 +45,9 @@ export async function requireUser(): Promise<{
   supabase: ServerSupabase
 }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
 
@@ -62,9 +64,7 @@ export async function requireUser(): Promise<{
  *
  * @param papel  Papel(s) aceite(s). Pode ser uma string ou array.
  */
-export async function requireRole(
-  papel: PapelUtilizador | PapelUtilizador[],
-): Promise<{
+export async function requireRole(papel: PapelUtilizador | PapelUtilizador[]): Promise<{
   user: User
   perfil: PerfilMinimo
   supabase: ServerSupabase

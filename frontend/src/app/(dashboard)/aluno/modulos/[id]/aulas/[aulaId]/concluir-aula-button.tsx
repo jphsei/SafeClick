@@ -78,9 +78,7 @@ export function ConcluirAulaButton({
             Última aula — ganhas {pontosConclusao} pontos ao concluir o módulo!
           </p>
         )}
-        {erro && (
-          <p className="text-xs text-red-600 mt-1">{erro}</p>
-        )}
+        {erro && <p className="text-xs text-red-600 mt-1">{erro}</p>}
       </div>
       <Button
         onClick={handleConcluir}

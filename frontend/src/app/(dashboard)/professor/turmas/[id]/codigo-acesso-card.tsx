@@ -27,7 +27,8 @@ export function CodigoAcessoCard({ codigo, nomeTurma }: CodigoAcessoCardProps) {
           <div>
             <p className="text-sm font-semibold text-blue-900">Código de acesso da turma</p>
             <p className="text-xs text-blue-600 mt-0.5">
-              Partilha este código com os alunos para eles entrarem em <span className="font-medium">{nomeTurma}</span>
+              Partilha este código com os alunos para eles entrarem em{' '}
+              <span className="font-medium">{nomeTurma}</span>
             </p>
           </div>
         </div>
@@ -41,16 +42,14 @@ export function CodigoAcessoCard({ codigo, nomeTurma }: CodigoAcessoCardProps) {
             className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-200 bg-white text-blue-600 hover:bg-blue-100 transition-colors"
             title="Copiar código"
           >
-            {copiado
-              ? <Check className="h-4 w-4 text-green-600" />
-              : <Copy className="h-4 w-4" />
-            }
+            {copiado ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
           </button>
         </div>
       </div>
 
       <p className="mt-3 text-xs text-blue-500">
-        Os alunos introduzem este código no campo &quot;Código de turma&quot; durante o registo na plataforma.
+        Os alunos introduzem este código no campo &quot;Código de turma&quot; durante o registo na
+        plataforma.
       </p>
     </div>
   )

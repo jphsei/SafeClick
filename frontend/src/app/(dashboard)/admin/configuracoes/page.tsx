@@ -38,9 +38,7 @@ export default async function AdminConfiguracoesPage() {
       icon: Bell,
       title: 'Notificações',
       description: 'Sistema de notificações',
-      items: [
-        { label: 'Notificações in-app', value: 'Disponíveis' },
-      ],
+      items: [{ label: 'Notificações in-app', value: 'Disponíveis' }],
     },
     {
       icon: Globe,
@@ -75,7 +73,10 @@ export default async function AdminConfiguracoesPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {section.items.map((item) => (
-                  <div key={item.label} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2"
+                  >
                     <span className="text-sm text-slate-600">{item.label}</span>
                     <span className="text-sm font-medium text-slate-900">{item.value}</span>
                   </div>
@@ -92,9 +93,8 @@ export default async function AdminConfiguracoesPage() {
           <div>
             <p className="text-sm font-semibold text-amber-900">Configurações avançadas</p>
             <p className="text-sm text-amber-700 mt-0.5">
-              Funcionalidades como gestão de chaves API, SMTP personalizado e
-              webhooks ainda não estão expostas nesta UI — geríveis directamente
-              no Studio do Supabase.
+              Funcionalidades como gestão de chaves API, SMTP personalizado e webhooks ainda não
+              estão expostas nesta UI — geríveis directamente no Studio do Supabase.
             </p>
           </div>
         </CardContent>

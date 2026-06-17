@@ -69,9 +69,7 @@ export function AdicionarAlunoForm({ turmaId }: AdicionarAlunoFormProps) {
       }
       // Re-activate
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase.from('turma_alunos') as any)
-        .update({ ativo: true })
-        .eq('id', existing.id)
+      await (supabase.from('turma_alunos') as any).update({ ativo: true }).eq('id', existing.id)
     } else {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: insertError } = await (supabase.from('turma_alunos') as any).insert({
@@ -108,7 +106,11 @@ export function AdicionarAlunoForm({ turmaId }: AdicionarAlunoFormProps) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-slate-900">Adicionar aluno</h3>
         <button
-          onClick={() => { setOpen(false); setError(null); setSuccess(null) }}
+          onClick={() => {
+            setOpen(false)
+            setError(null)
+            setSuccess(null)
+          }}
           className="text-slate-400 hover:text-slate-600 transition-colors"
         >
           <X className="h-5 w-5" />
@@ -140,7 +142,12 @@ export function AdicionarAlunoForm({ turmaId }: AdicionarAlunoFormProps) {
           />
         </div>
         <div className="flex gap-2">
-          <Button type="submit" disabled={loading || !identifier.trim()} size="sm" className="flex-1">
+          <Button
+            type="submit"
+            disabled={loading || !identifier.trim()}
+            size="sm"
+            className="flex-1"
+          >
             {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             {loading ? 'A adicionar...' : 'Adicionar'}
           </Button>
@@ -148,7 +155,11 @@ export function AdicionarAlunoForm({ turmaId }: AdicionarAlunoFormProps) {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => { setOpen(false); setError(null); setSuccess(null) }}
+            onClick={() => {
+              setOpen(false)
+              setError(null)
+              setSuccess(null)
+            }}
           >
             Fechar
           </Button>

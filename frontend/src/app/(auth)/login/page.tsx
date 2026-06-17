@@ -24,7 +24,9 @@ export default function LoginPage() {
   // Estado da fase OTP
   const [otpCode, setOtpCode] = useState('')
   const [otpSessionId, setOtpSessionId] = useState('')
-  const [pendingTokens, setPendingTokens] = useState<{ access: string; refresh: string } | null>(null)
+  const [pendingTokens, setPendingTokens] = useState<{ access: string; refresh: string } | null>(
+    null,
+  )
   const [otpFailures, setOtpFailures] = useState(0)
 
   const [loading, setLoading] = useState(false)
@@ -151,8 +153,9 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold text-slate-900">Verificação por email</h1>
           </div>
           <p className="text-sm text-slate-500">
-            Enviámos um código de 6 dígitos para <span className="font-medium text-slate-700">{email}</span>.
-            Insere-o abaixo para concluir o login.
+            Enviámos um código de 6 dígitos para{' '}
+            <span className="font-medium text-slate-700">{email}</span>. Insere-o abaixo para
+            concluir o login.
           </p>
         </div>
 
@@ -213,9 +216,7 @@ export default function LoginPage() {
     <>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Bem-vindo de volta!</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Entra na tua conta para continuar a aprender.
-        </p>
+        <p className="text-sm text-slate-500 mt-1">Entra na tua conta para continuar a aprender.</p>
       </div>
 
       {error && (
@@ -278,7 +279,10 @@ export default function LoginPage() {
 
       <div className="mt-6 text-center text-sm text-slate-600">
         Ainda não tens conta?{' '}
-        <Link href="/registo" className="font-medium text-blue-600 hover:text-blue-700 hover:underline">
+        <Link
+          href="/registo"
+          className="font-medium text-blue-600 hover:text-blue-700 hover:underline"
+        >
           Registar
         </Link>
       </div>

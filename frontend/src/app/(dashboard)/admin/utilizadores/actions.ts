@@ -8,33 +8,32 @@ import { validatePassword, MIN_PASSWORD_LENGTH } from '@/lib/auth/password'
 
 // ── Schemas ─────────────────────────────────────────────────────
 
-const emptyToNull = (v: unknown) =>
-  typeof v === 'string' && v.trim() === '' ? null : v
+const emptyToNull = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? null : v)
 
 const papelSchema = z.enum(['aluno', 'professor', 'administrador'], {
   message: 'Papel inválido.',
 })
 
 const createSchema = z.object({
-  email:          z.string().trim().email('Email inválido.').max(200),
-  password:       z.string().refine(
+  email: z.string().trim().email('Email inválido.').max(200),
+  password: z.string().refine(
     (pw) => validatePassword(pw).valid,
     () => ({
       message: `Password deve ter ${MIN_PASSWORD_LENGTH}+ caracteres, letra, número e carácter especial.`,
     }),
   ),
-  nome_completo:  z.string().trim().min(1, 'O nome é obrigatório.').max(200),
-  papel:          papelSchema,
-  escola_id:      z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
-  numero_aluno:   z.preprocess(emptyToNull, z.string().trim().max(50).nullable().optional()),
+  nome_completo: z.string().trim().min(1, 'O nome é obrigatório.').max(200),
+  papel: papelSchema,
+  escola_id: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+  numero_aluno: z.preprocess(emptyToNull, z.string().trim().max(50).nullable().optional()),
 })
 
 const updateSchema = z.object({
-  id:             z.string().uuid('ID inválido.'),
-  nome_completo:  z.string().trim().min(1, 'O nome é obrigatório.').max(200),
-  papel:          papelSchema,
-  escola_id:      z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
-  numero_aluno:   z.preprocess(emptyToNull, z.string().trim().max(50).nullable().optional()),
+  id: z.string().uuid('ID inválido.'),
+  nome_completo: z.string().trim().min(1, 'O nome é obrigatório.').max(200),
+  papel: papelSchema,
+  escola_id: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+  numero_aluno: z.preprocess(emptyToNull, z.string().trim().max(50).nullable().optional()),
 })
 
 const idOnlySchema = z.object({
@@ -62,8 +61,8 @@ export const criarUtilizador = adminAction(createSchema, async (input) => {
     email_confirm: true,
     user_metadata: {
       nome_completo: input.nome_completo,
-      papel:         input.papel,
-      numero_aluno:  input.numero_aluno,
+      papel: input.papel,
+      numero_aluno: input.numero_aluno,
     },
   })
 

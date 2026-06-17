@@ -40,8 +40,8 @@ interface UtilizadorFormProps {
 }
 
 const PAPEL_LABELS: Record<PapelUtilizador, string> = {
-  aluno:         'Aluno',
-  professor:     'Professor',
+  aluno: 'Aluno',
+  professor: 'Professor',
   administrador: 'Administrador',
 }
 
@@ -55,12 +55,12 @@ export function UtilizadorForm({ utilizador, escolas }: UtilizadorFormProps) {
   const modoEditar = !!utilizador
 
   // Estado dos campos
-  const [email, setEmail]                 = useState(utilizador?.email ?? '')
-  const [password, setPassword]           = useState('')
-  const [nomeCompleto, setNomeCompleto]   = useState(utilizador?.nome_completo ?? '')
-  const [papel, setPapel]                 = useState<PapelUtilizador>(utilizador?.papel ?? 'aluno')
-  const [escolaId, setEscolaId]           = useState<string>(utilizador?.escola_id ?? '')
-  const [numeroAluno, setNumeroAluno]     = useState(utilizador?.numero_aluno ?? '')
+  const [email, setEmail] = useState(utilizador?.email ?? '')
+  const [password, setPassword] = useState('')
+  const [nomeCompleto, setNomeCompleto] = useState(utilizador?.nome_completo ?? '')
+  const [papel, setPapel] = useState<PapelUtilizador>(utilizador?.papel ?? 'aluno')
+  const [escolaId, setEscolaId] = useState<string>(utilizador?.escola_id ?? '')
+  const [numeroAluno, setNumeroAluno] = useState(utilizador?.numero_aluno ?? '')
 
   // Ressincronizar ao abrir o modal
   useEffect(() => {
@@ -73,7 +73,7 @@ export function UtilizadorForm({ utilizador, escolas }: UtilizadorFormProps) {
     setPapel(utilizador?.papel ?? 'aluno')
     setEscolaId(utilizador?.escola_id ?? '')
     setNumeroAluno(utilizador?.numero_aluno ?? '')
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   function handleSubmit(e: React.FormEvent) {
@@ -86,19 +86,19 @@ export function UtilizadorForm({ utilizador, escolas }: UtilizadorFormProps) {
 
       const res = modoEditar
         ? await atualizarUtilizador({
-            id:            utilizador.id,
+            id: utilizador.id,
             nome_completo: nomeCompleto,
             papel,
-            escola_id:     escolaIdFinal,
-            numero_aluno:  numeroAlunoFinal,
+            escola_id: escolaIdFinal,
+            numero_aluno: numeroAlunoFinal,
           })
         : await criarUtilizador({
             email,
             password,
             nome_completo: nomeCompleto,
             papel,
-            escola_id:     escolaIdFinal,
-            numero_aluno:  numeroAlunoFinal,
+            escola_id: escolaIdFinal,
+            numero_aluno: numeroAlunoFinal,
           })
 
       if (!res.ok) {
@@ -160,9 +160,7 @@ export function UtilizadorForm({ utilizador, escolas }: UtilizadorFormProps) {
               autoComplete="email"
               autoFocus={!modoEditar}
             />
-            {modoEditar && (
-              <p className="text-xs text-slate-400">Não editável neste fluxo.</p>
-            )}
+            {modoEditar && <p className="text-xs text-slate-400">Não editável neste fluxo.</p>}
           </div>
 
           {/* Password (só no criar) */}
@@ -215,7 +213,9 @@ export function UtilizadorForm({ utilizador, escolas }: UtilizadorFormProps) {
               className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {(Object.keys(PAPEL_LABELS) as PapelUtilizador[]).map((p) => (
-                <option key={p} value={p}>{PAPEL_LABELS[p]}</option>
+                <option key={p} value={p}>
+                  {PAPEL_LABELS[p]}
+                </option>
               ))}
             </select>
           </div>
@@ -231,7 +231,9 @@ export function UtilizadorForm({ utilizador, escolas }: UtilizadorFormProps) {
             >
               <option value="">— Sem escola —</option>
               {escolas.map((e) => (
-                <option key={e.id} value={e.id}>{e.nome}</option>
+                <option key={e.id} value={e.id}>
+                  {e.nome}
+                </option>
               ))}
             </select>
           </div>
@@ -252,13 +254,24 @@ export function UtilizadorForm({ utilizador, escolas }: UtilizadorFormProps) {
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">Cancelar</Button>
+              <Button type="button" variant="outline">
+                Cancelar
+              </Button>
             </DialogClose>
-            <Button type="submit" disabled={pending || !nomeCompleto.trim() || (!modoEditar && (!email.trim() || !password))}>
+            <Button
+              type="submit"
+              disabled={
+                pending || !nomeCompleto.trim() || (!modoEditar && (!email.trim() || !password))
+              }
+            >
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}
               {pending
-                ? (modoEditar ? 'A guardar...' : 'A criar...')
-                : (modoEditar ? 'Guardar' : 'Criar utilizador')}
+                ? modoEditar
+                  ? 'A guardar...'
+                  : 'A criar...'
+                : modoEditar
+                  ? 'Guardar'
+                  : 'Criar utilizador'}
             </Button>
           </DialogFooter>
         </form>

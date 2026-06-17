@@ -31,17 +31,16 @@ export default async function QuizzesPage() {
     .eq('concluido', true)
 
   const tentativasMap = new Map(
-    (tentativasRaw as { quiz_id: string; nota: number | null; pontos_ganhos: number }[] ?? [])
-      .map((t) => [t.quiz_id, t])
+    (
+      (tentativasRaw as { quiz_id: string; nota: number | null; pontos_ganhos: number }[]) ?? []
+    ).map((t) => [t.quiz_id, t]),
   )
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Quizzes</h1>
-        <p className="text-slate-500 mt-1">
-          Testa os teus conhecimentos sobre cibersegurança.
-        </p>
+        <p className="text-slate-500 mt-1">Testa os teus conhecimentos sobre cibersegurança.</p>
       </div>
 
       {quizzes.length === 0 ? (
@@ -76,9 +75,7 @@ export default async function QuizzesPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-slate-900">{quiz.titulo}</p>
                       {quiz.descricao && (
-                        <p className="text-sm text-slate-500 truncate mt-0.5">
-                          {quiz.descricao}
-                        </p>
+                        <p className="text-sm text-slate-500 truncate mt-0.5">{quiz.descricao}</p>
                       )}
                       <div className="flex items-center gap-3 mt-1 text-xs text-slate-400 flex-wrap">
                         <span className="flex items-center gap-1">
