@@ -1,5 +1,12 @@
+// @vitest-environment node
 /**
  * Testes de segurança: prevenção de escalada de privilégios via signup.
+ *
+ * NOTA: `environment: 'node'` (em vez do default `happy-dom`) porque
+ * o `@supabase/supabase-js` recente inicializa o cliente Realtime
+ * que requer `WebSocket`. Node 22+ tem `globalThis.WebSocket` nativo,
+ * mas o happy-dom sobrepõe-o com `undefined`, partindo o `createClient`.
+ * Estes testes são integração HTTP pura — não precisam de DOM.
  *
  * Estes testes correm contra o Supabase LOCAL (porta 54321) e verificam,
  * end-to-end, que a vulnerabilidade documentada está fechada:
@@ -23,14 +30,27 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { warnIfMissingIntegrationEnv } from '../helpers/integration-env'
+
+const SUITE_NAME = 'Security: signup privilege escalation prevention'
+const envStatus = warnIfMissingIntegrationEnv(SUITE_NAME)
+const { envOk, explicitSkip, reason } = envStatus
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-const envOk = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_SERVICE_ROLE_KEY)
+// Sentinela: não permitir skip silencioso quando env em falta.
+describe.runIf(!envOk && !explicitSkip)(SUITE_NAME, () => {
+  it('FAIL: integration env not configured', () => {
+    throw new Error(
+      reason ??
+        'Integration env not configured. Set SKIP_INTEGRATION_TESTS=1 to silence.',
+    )
+  })
+})
 
-describe.skipIf(!envOk)('Security: signup privilege escalation prevention', () => {
+describe.skipIf(!envOk)(SUITE_NAME, () => {
   let anon: SupabaseClient
   let admin: SupabaseClient
   const createdUserIds: string[] = []

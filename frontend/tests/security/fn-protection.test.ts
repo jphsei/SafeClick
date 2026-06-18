@@ -1,5 +1,12 @@
+// @vitest-environment node
 /**
  * Testes de segurança: protecção das RPCs e RLS pós-fixes.
+ *
+ * NOTA: `environment: 'node'` (em vez do default `happy-dom`) porque
+ * o `@supabase/supabase-js` recente inicializa o cliente Realtime
+ * que requer `WebSocket`. Node 22+ tem `globalThis.WebSocket` nativo,
+ * mas o happy-dom sobrepõe-o com `undefined`, partindo o `createClient`.
+ * Estes testes são integração HTTP pura — não precisam de DOM.
  *
  * Cobre as correções de:
  *   - 20260617000005_fn_verificar_badges_no_params.sql
@@ -15,19 +22,32 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { warnIfMissingIntegrationEnv } from '../helpers/integration-env'
+
+const SUITE_NAME = 'Security: RPC protection + perfis RLS'
+const envStatus = warnIfMissingIntegrationEnv(SUITE_NAME)
+const { envOk, explicitSkip, reason } = envStatus
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-const envOk = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_SERVICE_ROLE_KEY)
 
 // IDs do seed (escolas)
 const ESCOLA_A = '11111111-1111-1111-1111-111111111111'
 // Uma das simulações do seed
 const SIMULACAO_ID = 'f0000001-0001-0000-0000-000000000001'
 
-describe.skipIf(!envOk)('Security: RPC protection + perfis RLS', () => {
+// Sentinela: não permitir skip silencioso quando env em falta.
+describe.runIf(!envOk && !explicitSkip)(SUITE_NAME, () => {
+  it('FAIL: integration env not configured', () => {
+    throw new Error(
+      reason ??
+        'Integration env not configured. Set SKIP_INTEGRATION_TESTS=1 to silence.',
+    )
+  })
+})
+
+describe.skipIf(!envOk)(SUITE_NAME, () => {
   let anon: SupabaseClient
   let admin: SupabaseClient
   const createdUserIds: string[] = []
