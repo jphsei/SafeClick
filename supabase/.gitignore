@@ -7,4 +7,9 @@
 .env.local
 .env.*.local
 
+# Dev-only seed com utilizadores teste (credenciais locais)
+# Cada developer cria o seu a partir de seed.dev.sql.example
+seed.dev.sql
+
+# Supabase Studio snippets (queries guardadas no UI, não código)
 snippets/

@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { NovoRecursoForm } from './novo-recurso-form'
 import { ApagarRecursoButton } from './apagar-recurso-button'
 import { type TipoRecurso } from '@/lib/types/database.types'
+import { safeUrl } from '@/lib/sanitize'
 
 const TIPO_LABELS: Record<TipoRecurso, string> = {
   plano_aula: 'Plano de Aula',
@@ -221,21 +222,28 @@ export function RecursosClient({ recursos, modulos, professorId }: Props) {
                       </div>
 
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        {recurso.url_ficheiro ? (
-                          <a
-                            href={recurso.url_ficheiro}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 transition-colors"
-                          >
-                            <Download className="h-4 w-4" />
-                            Abrir
-                          </a>
-                        ) : (
-                          <span className="rounded-lg border border-dashed border-slate-200 px-3 py-1.5 text-sm text-slate-400">
-                            Sem link
-                          </span>
-                        )}
+                        {(() => {
+                          // Defesa em profundidade: mesmo que algum registo
+                          // antigo da BD tenha um URL com scheme perigoso
+                          // (javascript:, data:, ...), safeUrl filtra antes
+                          // de renderizar como href.
+                          const href = safeUrl(recurso.url_ficheiro)
+                          return href ? (
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+                            >
+                              <Download className="h-4 w-4" />
+                              Abrir
+                            </a>
+                          ) : (
+                            <span className="rounded-lg border border-dashed border-slate-200 px-3 py-1.5 text-sm text-slate-400">
+                              Sem link
+                            </span>
+                          )
+                        })()}
 
                         {recurso.criado_por === professorId && (
                           <ApagarRecursoButton

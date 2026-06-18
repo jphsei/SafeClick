@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Turnstile } from '@/components/auth/turnstile'
 import { type PapelUtilizador } from '@/lib/types/database.types'
 
 type Fase = 'credenciais' | 'otp_email'
@@ -31,6 +32,9 @@ export default function LoginPage() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Token do Turnstile (CAPTCHA). Em dev sem sitekey configurado o
+  // widget não renderiza e o token fica vazio — o backend aceita.
+  const [captchaToken, setCaptchaToken] = useState('')
 
   function redirectToDashboard(papel: PapelUtilizador | undefined) {
     if (papel === 'professor') router.push('/professor')
@@ -49,7 +53,7 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, captcha_token: captchaToken }),
       })
 
       const body = await res.json()
@@ -270,6 +274,10 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
+
+        {/* Cloudflare Turnstile — anti-bot. Renderiza só se sitekey
+            estiver configurado (NEXT_PUBLIC_TURNSTILE_SITEKEY). */}
+        <Turnstile onVerify={setCaptchaToken} onExpire={() => setCaptchaToken('')} action="login" />
 
         <Button type="submit" className="w-full" disabled={loading}>
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}

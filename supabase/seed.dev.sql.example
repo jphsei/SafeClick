@@ -1,0 +1,98 @@
+-- ============================================================
+-- TEMPLATE: utilizadores de teste para desenvolvimento local
+-- ============================================================
+--
+-- Este ficheiro é apenas um template (commitado). Para usar:
+--
+--   1. Copia para `seed.dev.sql`:
+--        cp seed.dev.sql.example seed.dev.sql
+--   2. Edita as passwords abaixo (NUNCA as deixes em valor default).
+--   3. `supabase db reset` aplica ambos seed.sql + seed.dev.sql.
+--
+-- O ficheiro `seed.dev.sql` está no .gitignore — credenciais NUNCA
+-- chegam ao GitHub. Em produção (Supabase Cloud) o seed não corre,
+-- e mesmo que corresse seed.dev.sql não existe lá.
+--
+-- O `papel` vai em `raw_app_meta_data` para o trigger
+-- fn_novo_utilizador o reconhecer (o trigger ignora user_metadata).
+-- ============================================================
+
+INSERT INTO auth.users (
+    instance_id,
+    id,
+    aud,
+    role,
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    raw_app_meta_data,
+    raw_user_meta_data,
+    created_at,
+    updated_at,
+    confirmation_token,
+    email_change,
+    email_change_token_new,
+    recovery_token
+) VALUES
+(
+    '00000000-0000-0000-0000-000000000000',
+    'aaaaaaaa-0000-0000-0000-000000000001',
+    'authenticated',
+    'authenticated',
+    'professor.dev@example.local',
+    extensions.crypt('CHANGE_ME_LOCAL_DEV@1234', extensions.gen_salt('bf')),
+    NOW(),
+    '{"provider":"email","providers":["email"],"papel":"professor"}',
+    '{"nome_completo":"Professor Dev"}',
+    NOW(),
+    NOW(),
+    '', '', '', ''
+),
+(
+    '00000000-0000-0000-0000-000000000000',
+    'aaaaaaaa-0000-0000-0000-000000000002',
+    'authenticated',
+    'authenticated',
+    'aluno.dev@example.local',
+    extensions.crypt('CHANGE_ME_LOCAL_DEV@1234', extensions.gen_salt('bf')),
+    NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"nome_completo":"Aluno Dev"}',
+    NOW(),
+    NOW(),
+    '', '', '', ''
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Identity records exigidos pelo Supabase Auth para login email/password
+INSERT INTO auth.identities (
+    id,
+    provider_id,
+    user_id,
+    identity_data,
+    provider,
+    last_sign_in_at,
+    created_at,
+    updated_at
+) VALUES
+(
+    'aaaaaaaa-0000-0000-0000-000000000001',
+    'professor.dev@example.local',
+    'aaaaaaaa-0000-0000-0000-000000000001',
+    '{"sub":"aaaaaaaa-0000-0000-0000-000000000001","email":"professor.dev@example.local"}',
+    'email',
+    NOW(),
+    NOW(),
+    NOW()
+),
+(
+    'aaaaaaaa-0000-0000-0000-000000000002',
+    'aluno.dev@example.local',
+    'aaaaaaaa-0000-0000-0000-000000000002',
+    '{"sub":"aaaaaaaa-0000-0000-0000-000000000002","email":"aluno.dev@example.local"}',
+    'email',
+    NOW(),
+    NOW(),
+    NOW()
+)
+ON CONFLICT (id) DO NOTHING;
