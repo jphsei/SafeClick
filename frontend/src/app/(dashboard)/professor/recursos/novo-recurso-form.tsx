@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Plus, X } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { type TipoRecurso } from '@/lib/types/database.types'
+import { isSafeUrl } from '@/lib/sanitize'
+import { criarRecurso } from './actions'
 
 const TIPOS: { value: TipoRecurso; label: string }[] = [
   { value: 'plano_aula', label: 'Plano de Aula' },
@@ -18,13 +19,15 @@ const TIPOS: { value: TipoRecurso; label: string }[] = [
 ]
 
 interface Props {
-  professorId: string
+  // Prop preservado para compatibilidade com o caller (page.tsx). A
+  // server action `criarRecurso` usa o auth.uid() do session do
+  // professor, por isso `professorId` deixou de ser necessário aqui.
+  professorId?: string
   modulos: { id: string; titulo: string }[]
 }
 
-export function NovoRecursoForm({ professorId, modulos }: Props) {
+export function NovoRecursoForm({ modulos }: Props) {
   const router = useRouter()
-  const supabase = createClient()
 
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -36,28 +39,33 @@ export function NovoRecursoForm({ professorId, modulos }: Props) {
   const [url, setUrl] = useState('')
   const [moduloId, setModuloId] = useState('')
 
+  // Validação client-side em tempo real (UX). A defesa real está no
+  // servidor — esta validação é só para mostrar erro antes de submeter.
+  const urlInvalido = url.trim() !== '' && !isSafeUrl(url)
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!titulo.trim()) return
+    if (urlInvalido) {
+      setError('URL não permitido. Usa apenas http://, https:// ou mailto:.')
+      return
+    }
 
     setLoading(true)
     setError(null)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: err } = await (supabase.from('recursos_pedagogicos') as any).insert({
+    const res = await criarRecurso({
       titulo: titulo.trim(),
       descricao: descricao.trim() || null,
       tipo,
       url_ficheiro: url.trim() || null,
       modulo_id: moduloId || null,
-      criado_por: professorId,
-      visivel: true,
     })
 
     setLoading(false)
 
-    if (err) {
-      setError(`Erro: ${err.message}`)
+    if (!res.ok) {
+      setError(res.erro)
       return
     }
 
@@ -149,7 +157,13 @@ export function NovoRecursoForm({ professorId, modulos }: Props) {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://..."
+              className={urlInvalido ? 'border-red-300 focus-visible:ring-red-400' : ''}
             />
+            {urlInvalido && (
+              <p className="text-xs text-red-600">
+                Apenas http://, https:// ou mailto: são permitidos.
+              </p>
+            )}
           </div>
 
           <div className="space-y-1.5">

@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, Loader2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import { apagarRecurso } from './actions'
 
 interface Props {
   recursoId: string
@@ -23,12 +23,11 @@ interface Props {
 
 export function ApagarRecursoButton({ recursoId, tituloRecurso }: Props) {
   const router = useRouter()
-  const supabase = createClient()
   const [loading, setLoading] = useState(false)
 
   async function handleDelete() {
     setLoading(true)
-    await supabase.from('recursos_pedagogicos').delete().eq('id', recursoId)
+    await apagarRecurso({ id: recursoId })
     setLoading(false)
     router.refresh()
   }
