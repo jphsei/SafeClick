@@ -37,7 +37,6 @@ export function SimulacaoClient({
   remetenteFalso,
   urlFalso,
   pistas,
-  pontosSucesso,
   tentativaAnterior,
 }: SimulacaoClientProps) {
   const router = useRouter()
@@ -46,6 +45,12 @@ export function SimulacaoClient({
   const [fase, setFase] = useState<Fase>(tentativaAnterior ? 'resultado' : 'email')
   const [decisao, setDecisao] = useState<EstadoSimulacao | null>(tentativaAnterior?.estado ?? null)
   const [loading, setLoading] = useState(false)
+  // Pontos efectivamente atribuídos pelo servidor (pode ser 0 em retries
+  // mesmo quando estado=reportou, porque fn_submeter_simulacao só
+  // pontua a primeira tentativa correcta).
+  const [pontosAtribuidos, setPontosAtribuidos] = useState<number>(
+    tentativaAnterior?.pontos_ganhos ?? 0,
+  )
 
   // `inicio` mede quanto tempo o aluno demorou a decidir.
   // Em ref (não state) porque é só usado em event handlers — não precisa de
@@ -59,46 +64,34 @@ export function SimulacaoClient({
   async function handleDecisao(estado: EstadoSimulacao) {
     setLoading(true)
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) {
+    const tempoDecisao = Math.round((Date.now() - inicioRef.current) / 1000)
+
+    // ATOMIC server-side scoring. O servidor:
+    //   - valida que o caller é aluno (auth.uid())
+    //   - valida estado e tempo
+    //   - calcula pontos a partir de simulacoes_phishing.pontos_sucesso
+    //   - garante que retries não acumulam pontos
+    //   - insere tentativa, actualiza pontos_total, dispara badges
+    //
+    // O cliente não controla pontos atribuídos — apenas comunica o
+    // estado escolhido (clicou/ignorou/reportou) e o tempo gasto.
+    // Ver migration 20260617000006_fn_submeter_simulacao.sql.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc('fn_submeter_simulacao', {
+      p_simulacao_id: simulacaoId,
+      p_estado: estado,
+      p_tempo_decisao: tempoDecisao,
+    })
+
+    const resultado = data as { ok: boolean; pontos_ganhos?: number; erro?: string } | null
+
+    if (error || !resultado?.ok) {
+      console.error('[simulacao] submissão falhou:', error?.message ?? resultado?.erro)
       setLoading(false)
       return
     }
 
-    const tempoDecisao = Math.round((Date.now() - inicioRef.current) / 1000)
-    const pontosGanhos = estado === 'reportou' ? pontosSucesso : 0
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from('tentativas_simulacao') as any).insert({
-      simulacao_id: simulacaoId,
-      aluno_id: user.id,
-      estado,
-      pontos_ganhos: pontosGanhos,
-      tempo_decisao: tempoDecisao,
-    })
-
-    if (pontosGanhos > 0) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase as any).rpc('fn_atualizar_pontos', {
-          p_utilizador_id: user.id,
-          p_pontos: pontosGanhos,
-        })
-      } catch {
-        // silently ignore
-      }
-    }
-
-    // Check and award badges
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).rpc('fn_verificar_badges', { p_aluno_id: user.id })
-    } catch {
-      // silently ignore
-    }
-
+    setPontosAtribuidos(resultado.pontos_ganhos ?? 0)
     setDecisao(estado)
     setFase('resultado')
     setLoading(false)
@@ -209,7 +202,10 @@ export function SimulacaoClient({
       desc: 'Excelente! Reportaste este email como phishing. Na vida real, isto protege-te e ajuda a alertar outros utilizadores.',
       icon: <ShieldCheck className="h-8 w-8 text-green-600" />,
       bg: 'bg-green-50 border-green-200',
-      pontos: pontosSucesso,
+      // Usa os pontos efectivamente atribuídos pelo servidor. Será 0
+      // em retentativas (o servidor só pontua a primeira) — assim a
+      // UI não promete pontos que o backend não vai entregar.
+      pontos: pontosAtribuidos,
     },
     ignorou: {
       titulo: 'Quase! Ignorar é melhor que clicar.',
