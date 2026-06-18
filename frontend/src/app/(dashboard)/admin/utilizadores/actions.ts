@@ -46,44 +46,43 @@ const idOnlySchema = z.object({
  * Cria utilizador novo. Precisa do service role porque
  * `auth.admin.createUser` não funciona com o JWT do admin normal.
  *
- * O trigger `fn_novo_utilizador` cria a linha em `perfis` automaticamente
- * com base no `user_metadata`. A escola_id é atualizada num UPDATE
- * a seguir (o trigger não a lê do user_metadata).
+ * Operação **atómica**: papel e escola_id são passados via
+ * `app_metadata`. O trigger `fn_novo_utilizador` lê esses valores
+ * (settable apenas pelo service-role) e cria a entrada em `perfis`
+ * com o papel correcto numa única transação Postgres.
+ *
+ * Não há UPDATE posterior, não há janela de inconsistência: ou
+ * `createUser` sucesso (com perfil completo) ou falha (sem nada
+ * gravado em auth.users nem em perfis).
+ *
+ * Ver `supabase/migrations/20260617000002_use_app_metadata_for_papel.sql`.
  */
 export const criarUtilizador = adminAction(createSchema, async (input) => {
   const admin = createAdminClient()
 
-  // 1. Criar em auth.users (skip email confirmation — o admin é quem
-  //    valida que o email é real, e o user vai receber a password do admin)
-  const { data: created, error: authError } = await admin.auth.admin.createUser({
+  const { error: authError } = await admin.auth.admin.createUser({
     email: input.email,
     password: input.password,
     email_confirm: true,
+    // user_metadata: campos não-sensíveis (origem cliente é aceitável)
     user_metadata: {
       nome_completo: input.nome_completo,
-      papel: input.papel,
       numero_aluno: input.numero_aluno,
+    },
+    // app_metadata: campos sensíveis (papel = autorização). Settable
+    // APENAS por service-role; o trigger lê daqui. Esta é a única
+    // forma de criar não-alunos no sistema.
+    app_metadata: {
+      papel: input.papel,
+      escola_id: input.escola_id ?? null,
     },
   })
 
-  if (authError || !created.user) {
-    if (authError?.message.includes('already registered')) {
+  if (authError) {
+    if (authError.message.includes('already registered')) {
       return { ok: false, erro: 'Já existe uma conta com este email.' }
     }
-    return { ok: false, erro: `Erro ao criar utilizador: ${authError?.message ?? 'desconhecido'}` }
-  }
-
-  // 2. Atualizar escola_id em `perfis` (o trigger não a apanha)
-  if (input.escola_id) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: updError } = await (admin.from('perfis') as any)
-      .update({ escola_id: input.escola_id })
-      .eq('id', created.user.id)
-
-    if (updError) {
-      // Não falhamos a criação inteira por causa disto — utilizador já existe.
-      console.error('[criarUtilizador] erro ao definir escola_id:', updError)
-    }
+    return { ok: false, erro: `Erro ao criar utilizador: ${authError.message}` }
   }
 
   revalidatePath('/admin/utilizadores')
@@ -95,10 +94,14 @@ export const criarUtilizador = adminAction(createSchema, async (input) => {
  * nem password — isso requer fluxo de auth separado (que aqui ainda
  * não temos).
  */
-export const atualizarUtilizador = adminAction(updateSchema, async (input, { supabase }) => {
+export const atualizarUtilizador = adminAction(updateSchema, async (input) => {
+  // Service-role: necessário porque actualizamos colunas sensíveis
+  // (papel, escola_id) que estão REVOKE'd para authenticated após a
+  // migration 20260617000012. RBAC já foi feito pelo adminAction.
+  const admin = createAdminClient()
   const { id, ...patch } = input
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase.from('perfis') as any)
+  const { error } = await (admin.from('perfis') as any)
     .update({
       ...patch,
       atualizado_em: new Date().toISOString(),
@@ -125,14 +128,17 @@ export const atualizarUtilizador = adminAction(updateSchema, async (input, { sup
  */
 const PERMANENT_BAN_DURATION = '876000h'
 
-export const desativarUtilizador = adminAction(idOnlySchema, async ({ id }, { user, supabase }) => {
+export const desativarUtilizador = adminAction(idOnlySchema, async ({ id }, { user }) => {
   // Salvaguarda: admin não pode desativar a sua própria conta
   if (id === user.id) {
     return { ok: false, erro: 'Não podes desativar a tua própria conta.' }
   }
 
-  // 1. Banir no Supabase Auth (impede login imediato)
+  // Service-role para ambas as operações (ban + ativo). `ativo` está
+  // REVOKE'd para authenticated após a migration 20260617000012.
   const admin = createAdminClient()
+
+  // 1. Banir no Supabase Auth (impede login imediato)
   const { error: banError } = await admin.auth.admin.updateUserById(id, {
     ban_duration: PERMANENT_BAN_DURATION,
   })
@@ -142,7 +148,7 @@ export const desativarUtilizador = adminAction(idOnlySchema, async ({ id }, { us
 
   // 2. Marcar perfis.ativo = false (metadata da app)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase.from('perfis') as any)
+  const { error } = await (admin.from('perfis') as any)
     .update({ ativo: false, atualizado_em: new Date().toISOString() })
     .eq('id', id)
 
@@ -153,9 +159,12 @@ export const desativarUtilizador = adminAction(idOnlySchema, async ({ id }, { us
   return { ok: true }
 })
 
-export const reativarUtilizador = adminAction(idOnlySchema, async ({ id }, { supabase }) => {
-  // 1. Desbanir no Supabase Auth (permite login outra vez)
+export const reativarUtilizador = adminAction(idOnlySchema, async ({ id }) => {
+  // Service-role para ambas as operações (unban + ativo). Mesmo
+  // raciocínio que desativarUtilizador.
   const admin = createAdminClient()
+
+  // 1. Desbanir no Supabase Auth (permite login outra vez)
   const { error: unbanError } = await admin.auth.admin.updateUserById(id, {
     ban_duration: 'none',
   })
@@ -165,7 +174,7 @@ export const reativarUtilizador = adminAction(idOnlySchema, async ({ id }, { sup
 
   // 2. Marcar perfis.ativo = true
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase.from('perfis') as any)
+  const { error } = await (admin.from('perfis') as any)
     .update({ ativo: true, atualizado_em: new Date().toISOString() })
     .eq('id', id)
 

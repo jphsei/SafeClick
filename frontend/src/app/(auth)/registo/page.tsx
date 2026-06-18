@@ -97,15 +97,17 @@ export default function RegistoPage() {
 
     try {
       // ── 1. Create account ────────────────────────────────────────────────
-      // All public registrations create an 'aluno' account.
-      // Professors are created by administrators only.
+      // O frontend NÃO decide o papel. A decisão é exclusivamente do
+      // trigger fn_novo_utilizador, que força sempre 'aluno' no signup
+      // público (papel só é settable via raw_app_meta_data, e este
+      // endpoint não aceita app_metadata). Ver migration
+      // 20260617000002_use_app_metadata_for_papel.sql.
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             nome_completo: nomeCompleto,
-            papel: 'aluno',
           },
         },
       })
