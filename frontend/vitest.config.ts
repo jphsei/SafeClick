@@ -27,6 +27,14 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      // Redirige `import 'server-only'` para um stub vazio em testes.
+      // O package real lança erro em contextos não-Next-server (o que
+      // Vitest é), o que tornaria impossível testar lib/log.ts,
+      // lib/auth/otp-challenge.ts, lib/env.ts, etc.
+      //
+      // Em produção, Next.js continua a resolver `server-only` para
+      // o package real — o guard server/client mantém-se.
+      'server-only': path.resolve(__dirname, './tests/__mocks__/server-only.ts'),
       '@': path.resolve(__dirname, './src'),
     },
   },
