@@ -3,19 +3,33 @@ import type { NextConfig } from 'next'
 /**
  * Headers HTTP de segurança aplicados a TODAS as rotas.
  *
- * - X-Frame-Options: impede a app de ser embutida em <iframe> (clickjacking)
- * - X-Content-Type-Options: impede MIME sniffing (segurança contra
- *   ataques que injectam ficheiros com Content-Type errado)
- * - Referrer-Policy: limita info partilhada com sites externos
- * - Permissions-Policy: desactiva APIs do browser que não usamos
- *   (camera, microfone, geolocalização, pagamentos)
+ * NOTA: a Content-Security-Policy é injectada dinamicamente pelo
+ * middleware (`src/proxy.ts`) por request, com nonce per-request,
+ * porque Next.js injecta inline scripts/styles para hydration. Não
+ * está aqui (config estática) — está no proxy/middleware.
  *
- * TODO: Content-Security-Policy. Requer mais cuidado porque o Next.js
- * usa inline scripts/styles para hydration; uma CSP estrita pode partir
- * a app. Para activar, gerar nonces via middleware e injectar em CSP.
- * Ver https://nextjs.org/docs/app/building-your-application/configuring/content-security-policy
+ * Trade-offs documentados:
+ *   - HSTS: o `preload` está activado, mas só registar no Chrome
+ *     HSTS preload list depois de validar que o domínio nunca mais
+ *     vai precisar de HTTP. Para já é seguro (max-age curto fora de
+ *     prod via env).
+ *   - COEP/COOP: COOP "same-origin" isola o BrowsingContext (anti
+ *     Spectre / window.opener). COEP "require-corp" rejeita
+ *     resources sem CORP header — pode partir embeds (YouTube,
+ *     imagens externas). Usamos `unsafe-none` para já; quando
+ *     auditarmos embeds, mudamos para "require-corp".
+ *   - CORP "same-site" permite que outros sub-domínios do mesmo
+ *     site reusem os recursos. "same-origin" seria mais estrito
+ *     mas parte deployments com CDN cross-subdomain.
  */
 const securityHeaders = [
+  // HSTS — forçar HTTPS por 1 ano. includeSubDomains se controlas
+  // todos os subdomínios. `preload` só ligar após inscrição em
+  // hstspreload.org.
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=31536000; includeSubDomains',
+  },
   {
     key: 'X-Frame-Options',
     value: 'DENY',
@@ -30,23 +44,30 @@ const securityHeaders = [
   },
   {
     key: 'Permissions-Policy',
-    value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+    value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
   },
-  // {
-  //   key: 'Content-Security-Policy',
-  //   value: "default-src 'self'; ...", // TODO: implementar com nonce
-  // },
+  // Isolação cross-origin
+  {
+    key: 'Cross-Origin-Opener-Policy',
+    value: 'same-origin',
+  },
+  {
+    key: 'Cross-Origin-Resource-Policy',
+    value: 'same-site',
+  },
+  {
+    key: 'Cross-Origin-Embedder-Policy',
+    value: 'unsafe-none', // TODO: 'require-corp' depois de auditar embeds
+  },
 ]
 
 const nextConfig: NextConfig = {
-  // Esconder o header "X-Powered-By: Next.js" (não dá info útil a
-  // utilizadores legítimos e ajuda scanners a fazer fingerprinting).
+  // Esconder o header "X-Powered-By: Next.js"
   poweredByHeader: false,
 
   async headers() {
     return [
       {
-        // Aplicar os headers a todas as rotas
         source: '/:path*',
         headers: securityHeaders,
       },
