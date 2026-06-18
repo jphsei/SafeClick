@@ -2,14 +2,16 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/auth/rate-limiter'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { verifyOtpCode } from '@/lib/auth/otp-email'
+import { maskIp, maskSessionId } from '@/lib/log'
+import { getClientIp as getRealClientIp } from '@/lib/client-ip'
+import {
+  verifyChallenge,
+  OTP_CHALLENGE_COOKIE,
+} from '@/lib/auth/otp-challenge'
 
-/** Extrai o IP real do cliente. */
+/** Wrapper sobre o helper centralizado (em lib/client-ip.ts). */
 function getClientIp(req: NextRequest): string {
-  return (
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    req.headers.get('x-real-ip') ??
-    'unknown'
-  )
+  return getRealClientIp(req)
 }
 
 export async function POST(request: NextRequest) {
@@ -46,7 +48,8 @@ export async function POST(request: NextRequest) {
   const admin = createAdminClient()
   const { data: session, error: fetchError } = await admin
     .from('email_otp_sessions')
-    .select('id, code_hash, expires_at, used')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .select('id, code_hash, expires_at, used, ip_address, challenge_hash' as any)
     .eq('id', otp_session_id)
     .single()
 
@@ -57,33 +60,81 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sess = session as any as {
+    code_hash: string
+    expires_at: string
+    used: boolean
+    ip_address: string | null
+    challenge_hash: string | null
+  }
+
   // ── 4. Verificar validade ─────────────────────────────────────────────────
-  if (session.used) {
+  if (sess.used) {
     return NextResponse.json(
       { error: 'Este código já foi utilizado. Volta a fazer login.' },
       { status: 401 },
     )
   }
 
-  if (new Date(session.expires_at) < new Date()) {
+  if (new Date(sess.expires_at) < new Date()) {
     return NextResponse.json(
       { error: 'O código expirou. Volta a fazer login para obter um novo código.' },
       { status: 401 },
     )
   }
 
-  if (!verifyOtpCode(code, session.code_hash)) {
-    console.warn(`[OTP] Código incorreto — ip=${ip} session=${otp_session_id}`)
+  // ── 5. Challenge cookie binding ───────────────────────────────────────────
+  // Substituiu a antiga IP binding (ver 20260617000010_otp_challenge_binding.sql).
+  // Garantia: a sessão OTP só é verificada pelo mesmo browser que iniciou
+  // o login. Robusto contra mudanças de IP (mobile handover, dual-stack,
+  // VPNs, etc.).
+  //
+  // `challenge_hash = NULL` significa sessão pré-migration — aceitamos por
+  // compatibilidade transitória. Após 15 min, todas as sessões têm hash.
+  if (sess.challenge_hash) {
+    const cookieChallenge = request.cookies.get(OTP_CHALLENGE_COOKIE)?.value
+    if (!verifyChallenge(cookieChallenge, sess.challenge_hash)) {
+      console.warn(
+        `[OTP] challenge mismatch — ip=${maskIp(ip)} session=${maskSessionId(otp_session_id)}`,
+      )
+      return NextResponse.json(
+        { error: 'Sessão inválida ou expirada. Refaz o login.' },
+        { status: 401 },
+      )
+    }
+  }
+
+  // ── 6. Verificar código ───────────────────────────────────────────────────
+  if (!verifyOtpCode(code, sess.code_hash)) {
+    console.warn(
+      `[OTP] código incorreto — ip=${maskIp(ip)} session=${maskSessionId(otp_session_id)}`,
+    )
     return NextResponse.json(
       { error: 'Código incorreto. Verifica o teu email e tenta novamente.' },
       { status: 401 },
     )
   }
 
-  // ── 5. Marcar como usado ──────────────────────────────────────────────────
+  // ── 7. Marcar como usado ──────────────────────────────────────────────────
   await admin.from('email_otp_sessions').update({ used: true }).eq('id', otp_session_id)
 
-  console.info(`[OTP] Verificação bem-sucedida — ip=${ip} session=${otp_session_id}`)
+  console.info(
+    `[OTP] verificação bem-sucedida — ip=${maskIp(ip)} session=${maskSessionId(otp_session_id)}`,
+  )
 
-  return NextResponse.json({ success: true })
+  // ── 8. Limpar o challenge cookie ──────────────────────────────────────────
+  // Single-use: depois de verificado, o cookie deixa de fazer sentido.
+  // Defesa em profundidade contra reuso acidental.
+  const res = NextResponse.json({ success: true })
+  res.cookies.set({
+    name: OTP_CHALLENGE_COOKIE,
+    value: '',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/api/auth',
+    maxAge: 0,
+  })
+  return res
 }
