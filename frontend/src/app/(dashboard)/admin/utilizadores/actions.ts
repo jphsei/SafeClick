@@ -46,32 +46,42 @@ const idOnlySchema = z.object({
  * Cria utilizador novo. Precisa do service role porque
  * `auth.admin.createUser` não funciona com o JWT do admin normal.
  *
- * Operação **atómica**: papel e escola_id são passados via
- * `app_metadata`. O trigger `fn_novo_utilizador` lê esses valores
- * (settable apenas pelo service-role) e cria a entrada em `perfis`
- * com o papel correcto numa única transação Postgres.
+ * Fluxo em duas fases (necessário porque o GoTrue v2.186+ insere
+ * em `auth.users` e SÓ DEPOIS popula `raw_app_meta_data` com um
+ * UPDATE separado — o trigger `trg_auth_novo_utilizador` AFTER INSERT
+ * vê `raw_app_meta_data` ainda sem `papel`, criando sempre o perfil
+ * como `'aluno'`):
  *
- * Não há UPDATE posterior, não há janela de inconsistência: ou
- * `createUser` sucesso (com perfil completo) ou falha (sem nada
- * gravado em auth.users nem em perfis).
+ *   1. `auth.admin.createUser({ ..., app_metadata: { papel, escola_id } })`
+ *      cria a linha em `auth.users`. O trigger AFTER INSERT corre e
+ *      cria a row em `perfis` como aluno. `app_metadata` é settable
+ *      apenas via service-role — sem injecção pelo cliente.
  *
- * Ver `supabase/migrations/20260617000002_use_app_metadata_for_papel.sql`.
+ *   2. UPDATE explícito em `perfis` com `papel` e `escola_id` reais.
+ *      Em Local, a migration 20260618000006 (trigger AFTER UPDATE OF
+ *      raw_app_meta_data) também faz esta sincronização; este UPDATE
+ *      é redundante mas idempotente. Em Cloud, não podemos criar
+ *      triggers em `auth.users` (precisa de ownership do
+ *      supabase_auth_admin), por isso este UPDATE é a única forma
+ *      de garantir o papel/escola_id correctos.
+ *
+ * Falha entre as fases:
+ *   - Se `createUser` falhar → não há rollback necessário.
+ *   - Se o UPDATE em perfis falhar → rollback via `deleteUser` para
+ *     não deixar um aluno órfão quando o admin pediu professor/admin.
  */
 export const criarUtilizador = adminAction(createSchema, async (input) => {
   const admin = createAdminClient()
 
-  const { error: authError } = await admin.auth.admin.createUser({
+  // ── Fase 1: criar user em auth.users ─────────────────────────────
+  const { data: created, error: authError } = await admin.auth.admin.createUser({
     email: input.email,
     password: input.password,
     email_confirm: true,
-    // user_metadata: campos não-sensíveis (origem cliente é aceitável)
     user_metadata: {
       nome_completo: input.nome_completo,
       numero_aluno: input.numero_aluno,
     },
-    // app_metadata: campos sensíveis (papel = autorização). Settable
-    // APENAS por service-role; o trigger lê daqui. Esta é a única
-    // forma de criar não-alunos no sistema.
     app_metadata: {
       papel: input.papel,
       escola_id: input.escola_id ?? null,
@@ -83,6 +93,32 @@ export const criarUtilizador = adminAction(createSchema, async (input) => {
       return { ok: false, erro: 'Já existe uma conta com este email.' }
     }
     return { ok: false, erro: `Erro ao criar utilizador: ${authError.message}` }
+  }
+
+  const newUserId = created.user?.id
+  if (!newUserId) {
+    return { ok: false, erro: 'createUser não devolveu o ID do utilizador.' }
+  }
+
+  // ── Fase 2: sincronizar papel/escola_id no perfil ────────────────
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (admin.from('perfis') as any)
+    .update({
+      papel: input.papel,
+      escola_id: input.escola_id ?? null,
+      atualizado_em: new Date().toISOString(),
+    })
+    .eq('id', newUserId)
+
+  if (updateError) {
+    // Rollback: apaga o user para não deixar inconsistência.
+    await admin.auth.admin.deleteUser(newUserId).catch(() => {
+      /* ignore — admin terá de limpar manualmente */
+    })
+    return {
+      ok: false,
+      erro: `Erro a definir papel/escola: ${updateError.message}. Utilizador removido — tenta novamente.`,
+    }
   }
 
   revalidatePath('/admin/utilizadores')
