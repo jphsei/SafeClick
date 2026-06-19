@@ -36,6 +36,7 @@ export type Database = {
     Tables: {
       aulas: {
         Row: {
+          ativo: boolean
           atualizado_em: string
           conteudo: string | null
           criado_em: string
@@ -48,6 +49,7 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          ativo?: boolean
           atualizado_em?: string
           conteudo?: string | null
           criado_em?: string
@@ -60,6 +62,7 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          ativo?: boolean
           atualizado_em?: string
           conteudo?: string | null
           criado_em?: string
@@ -144,26 +147,32 @@ export type Database = {
       }
       email_otp_sessions: {
         Row: {
+          challenge_hash: string | null
           code_hash: string
           created_at: string
           expires_at: string
           id: string
+          ip_address: unknown
           used: boolean
           user_id: string
         }
         Insert: {
+          challenge_hash?: string | null
           code_hash: string
           created_at?: string
           expires_at?: string
           id?: string
+          ip_address?: unknown
           used?: boolean
           user_id: string
         }
         Update: {
+          challenge_hash?: string | null
           code_hash?: string
           created_at?: string
           expires_at?: string
           id?: string
+          ip_address?: unknown
           used?: boolean
           user_id?: string
         }
@@ -1202,6 +1211,10 @@ export type Database = {
       }
     }
     Functions: {
+      fn_aluno_pertence_ao_professor: {
+        Args: { p_aluno_id: string }
+        Returns: boolean
+      }
       fn_atualizar_pontos: {
         Args: { p_pontos: number; p_utilizador_id: string }
         Returns: undefined
@@ -1235,8 +1248,16 @@ export type Database = {
         Args: { p_quiz_id: string; p_respostas: Json }
         Returns: Json
       }
+      fn_submeter_simulacao: {
+        Args: {
+          p_estado: string
+          p_simulacao_id: string
+          p_tempo_decisao: number
+        }
+        Returns: Json
+      }
       fn_validar_codigo_turma: { Args: { p_codigo: string }; Returns: boolean }
-      fn_verificar_badges: { Args: { p_aluno_id: string }; Returns: number }
+      fn_verificar_badges: { Args: never; Returns: number }
     }
     Enums: {
       estado_modulo: "rascunho" | "publicado" | "arquivado"
