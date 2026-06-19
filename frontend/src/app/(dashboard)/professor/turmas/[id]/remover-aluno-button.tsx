@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { UserMinus, Loader2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { removerAlunoDaTurma } from '../actions'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,27 +23,37 @@ interface RemoverAlunoButtonProps {
 
 export function RemoverAlunoButton({ turmaAlunoId, nomeAluno }: RemoverAlunoButtonProps) {
   const router = useRouter()
-  const supabase = createClient()
   const [loading, setLoading] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
 
   async function handleRemover() {
     setLoading(true)
-    await supabase.from('turma_alunos').update({ ativo: false }).eq('id', turmaAlunoId)
+    setErro(null)
+
+    const result = await removerAlunoDaTurma({ id: turmaAlunoId })
 
     setLoading(false)
-    // router.refresh() re-corre os Server Components da rota actual
-    // sem fazer full reload — o estado local de outros componentes
-    // mantém-se, mas as queries do servidor são re-executadas.
+
+    if (!result.ok) {
+      setErro(result.erro)
+      return
+    }
+
     router.refresh()
   }
 
   return (
-    <AlertDialog>
+    <AlertDialog
+      onOpenChange={(open) => {
+        if (!open) setErro(null)
+      }}
+    >
       <AlertDialogTrigger asChild>
         <button
           disabled={loading}
           className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
           title="Remover da turma"
+          aria-label={nomeAluno ? `Remover ${nomeAluno} da turma` : 'Remover aluno da turma'}
         >
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -67,9 +77,25 @@ export function RemoverAlunoButton({ turmaAlunoId, nomeAluno }: RemoverAlunoButt
             O aluno deixa de ter acesso aos materiais da turma, mas a conta dele mantém-se.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {erro && (
+          <div
+            role="alert"
+            className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          >
+            {erro}
+          </div>
+        )}
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleRemover}>Remover</AlertDialogAction>
+          <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={(e) => {
+              e.preventDefault()
+              handleRemover()
+            }}
+            disabled={loading}
+          >
+            {loading ? 'A remover...' : 'Remover'}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
