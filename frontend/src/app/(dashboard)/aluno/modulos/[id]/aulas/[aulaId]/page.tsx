@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Clock, CheckCircle } from 'lucide-reac
 import { requireUser } from '@/lib/auth/require-role'
 import { Card, CardContent } from '@/components/ui/card'
 import { ConcluirAulaButton } from './concluir-aula-button'
+import { sanitizeEmailHtml } from '@/lib/sanitize'
 
 export default async function AulaPage({
   params,
@@ -117,7 +118,10 @@ export default async function AulaPage({
         <CardContent className="pt-6">
           {aula.conteudo ? (
             <div className="prose prose-slate max-w-none">
-              <p className="whitespace-pre-wrap text-slate-700 leading-relaxed">{aula.conteudo}</p>
+              <div
+                className="text-slate-700 leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-3 [&_h1]:mt-4 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-3 [&_h2]:mt-4 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-3 [&_p]:mb-3 [&_a]:text-blue-600 [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-3 [&_li]:mb-1 [&_strong]:font-semibold [&_b]:font-semibold [&_em]:italic [&_code]:bg-slate-100 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-slate-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:overflow-x-auto"
+                dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(aula.conteudo) }}
+              />
             </div>
           ) : (
             <div className="text-center py-10">
