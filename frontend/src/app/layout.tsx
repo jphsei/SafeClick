@@ -31,3 +31,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   )
 }
+
+// CSP nonce do middleware so funciona em pages dynamic.
+// Sem isto, scripts inline gerados em build-time tem nonce diferente do runtime,
+// e o browser bloqueia todos (sintoma: forms desabilitados em producao).
+export const dynamic = 'force-dynamic'
